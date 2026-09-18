@@ -3,6 +3,7 @@ import { CaseDetail } from './routes/CaseDetail'
 import { Dashboard } from './routes/Dashboard'
 import { Layout } from './routes/Layout'
 import { NewCase } from './routes/NewCase'
+import { Synopsis } from './routes/Synopsis'
 
 function App() {
   return (
@@ -11,6 +12,7 @@ function App() {
         <Route path="/" element={<Dashboard />} />
         <Route path="/new" element={<NewCase />} />
         <Route path="/case/:caseId" element={<CaseDetail />} />
+        <Route path="/case/:caseId/synopsis" element={<Synopsis />} />
       </Route>
     </Routes>
   )

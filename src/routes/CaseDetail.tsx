@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import type { ClockBoard as ClockBoardData } from '@lapse/rules'
 import actNow from '../../packages/rules/fixtures/act-now.json'
 import deadlineMissed from '../../packages/rules/fixtures/deadline-missed.json'
@@ -53,6 +53,9 @@ export function CaseDetail() {
     <section>
       <h1>Case {board.facts.chequeNumber}</h1>
       <ClockBoard board={board} />
+      <p className="case-detail__links">
+        <Link to={`/case/${caseId}/synopsis`}>View draft synopsis</Link>
+      </p>
     </section>
   )
 }

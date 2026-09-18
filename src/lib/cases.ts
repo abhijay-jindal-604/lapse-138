@@ -33,3 +33,11 @@ export async function loadCase(caseId: string): Promise<ClockBoard | null> {
   }
   return JSON.parse(data.result as unknown as string) as ClockBoard
 }
+
+export async function fetchSynopsis(caseId: string): Promise<string> {
+  const { data, errors } = await client.queries.synopsisForCase({ caseId })
+  if (errors || data == null) {
+    throw new Error(errors?.[0]?.message ?? 'Failed to generate synopsis')
+  }
+  return data
+}

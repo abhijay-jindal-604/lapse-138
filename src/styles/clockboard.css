@@ -5,6 +5,10 @@
   max-width: 720px;
 }
 
+.case-detail__links {
+  margin-top: 16px;
+}
+
 .clock-board__header {
   display: flex;
   align-items: center;

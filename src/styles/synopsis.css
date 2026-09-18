@@ -1,0 +1,18 @@
+.synopsis {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 720px;
+}
+
+.synopsis__editor {
+  font-family: var(--mono, monospace);
+  font-size: 14px;
+  line-height: 150%;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  resize: vertical;
+}
