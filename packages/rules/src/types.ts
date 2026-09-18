@@ -335,3 +335,71 @@ export type ClockBoard = {
   clock3: Clock3Result | null
   clock4: Clock4Result | null
 }
+
+// ---------------------------------------------------------------------------
+// §3 "Outputs that are not clocks" — structured synopsis mandated by
+// Sanjabij Tari v. Kishore S. Borcar, 2025 INSC 1158. Field groups transcribed
+// verbatim from the judgment's Annexure. Assembled directly from CaseFacts
+// plus Clock 3's computed result — never from a model, never free text.
+// ---------------------------------------------------------------------------
+
+export type SynopsisPartiesParticulars = {
+  payeeName: string
+  payeeAddress: string
+  drawerName: string
+  drawerAddress: string
+}
+
+export type SynopsisChequeParticulars = {
+  chequeNumber: string
+  chequeDate: ISODate
+  amountInPaise: IntegerPaise
+  drawerBankName: string
+  drawerBankBranch: string
+  drawerName: string
+  payeeName: string
+}
+
+export type SynopsisDishonour = {
+  presentationDate: ISODate | null
+  dishonourDate: ISODate | null // CaseFacts.dishonourMemoDate
+  dishonourReason: DishonourReason
+}
+
+export type SynopsisStatutoryNotice = {
+  dispatchDate: ISODate | null // noticeSentDate
+  mode: NoticeServiceMode
+  receiptDate: ISODate | null // noticeReceivedDate — deemed or actual per mode
+  deemed: boolean
+  response: PaymentStatus // the closest CaseFacts-traceable notion of "response"
+  responseDate: ISODate | null // paymentDate
+}
+
+export type SynopsisCauseOfAction = {
+  date: ISODate | null // Clock 3's causeOfActionDate, only once it is a fixed fact (PASS)
+  basis: 'computed' | 'not_yet_accrued'
+}
+
+export type SynopsisReliefSought = {
+  amountInPaise: IntegerPaise
+  interestClaimedInPaise: IntegerPaise | null
+  interimCompensationNote: string // static §143A discretion note — never model-generated
+}
+
+export type SynopsisAccusedContactParticulars = {
+  accusedEmail: string | null
+  accusedMobile: string | null
+  accusedMessagingDetails: string | null
+  affidavitWarning: string // §7's literal warning text, attached verbatim
+}
+
+export type SynopsisResult = {
+  marker: string // 'DRAFT SYNOPSIS — verify against the prescribed format before filing'
+  partiesParticulars: SynopsisPartiesParticulars
+  chequeParticulars: SynopsisChequeParticulars
+  dishonour: SynopsisDishonour
+  statutoryNotice: SynopsisStatutoryNotice
+  causeOfAction: SynopsisCauseOfAction
+  reliefSought: SynopsisReliefSought
+  accusedContactParticulars: SynopsisAccusedContactParticulars
+}

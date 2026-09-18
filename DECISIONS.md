@@ -407,3 +407,38 @@ M5-T4 (date-travel) remains the protected wow moment, and D-11's Sunday-12:00 fe
 is absolute — a half-built stretch item on camera is worse than not attempting it. DEMO.md is
 deliberately not being rewritten around this tier yet; the video script gets reconciled with
 whatever actually got built, at the end, not speculatively now.
+
+---
+
+## D-23 · M1-T5 closeout: advisory filing date, synopsis shape, and the full test-table audit
+**18 Sep 2026, M1-T5 implementation.**
+
+Three judgment calls the M1-T4 handoff flagged as open, resolved while writing the tests
+that actually exercise them:
+
+1. **`earliestSafeFilingDate`'s pinning to the advisory range's latest bound stands.** Writing
+   T25's full assertions (not just the payment-window range M1-T4 already covered) confirmed
+   the reasoning holds: filing on the *earliest* bound risks a premature complaint if actual
+   service lands later in the estimated window, and prematurity is uncurable by waiting
+   (*Yogendra Pratap Singh*, Clock 4). Pinning to the latest bound is the only choice that
+   can't produce a premature filing off an estimate. Not changed.
+
+2. **§5's T27 row says "all four sections populated"; §3's Annexure list actually names seven
+   field-groups** (parties, cheque, dishonour, statutory notice, cause of action, relief
+   sought, accused's contact particulars). Treated the Annexure list in §3 as authoritative,
+   since it's the literal transcription §3 itself insists on, and the "four sections" phrase
+   in the §5 summary row as loose paraphrase, not a spec. `SynopsisResult` implements all
+   seven groups; the T27 test asserts substance (every field traceable to `CaseFacts` or
+   Clock 3) rather than a section count nowhere else in the document.
+
+3. **No `computeClockBoard` orchestrator exists, and `computeSynopsis` doesn't need one.**
+   Every synopsis field is either a direct `CaseFacts` copy or Clock 3's `causeOfActionDate`
+   — no other clock result contributes anything the synopsis needs — so the signature is
+   `computeSynopsis(facts, clock3)`, matching `computeOverallStatus`'s existing pattern of
+   taking individual clock results rather than a pre-assembled board. Building an
+   orchestrator now would be new scope nothing in M1-T5 asked for.
+
+Also closed: a literal T01–T27 audit (`packages/rules/test/table.test.ts`) checks every
+LEGAL_RULES.md §5 row by its own number against the full gateA→clock1-4→overallStatus
+pipeline, so "all 27 tests pass" is checkable directly rather than inferred from the
+scenario-by-scenario tests M1-T3/T4 already wrote (those stay, unchanged).
