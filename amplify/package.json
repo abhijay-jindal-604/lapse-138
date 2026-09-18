@@ -1,3 +1,8 @@
 {
-  "type": "module"
+  "name": "@lapse/amplify",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run"
+  }
 }
