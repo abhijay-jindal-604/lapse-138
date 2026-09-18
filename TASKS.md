@@ -83,7 +83,7 @@ browser check, not just localhost — all three routes render with nav and the d
 | **M2-T1** | B | ✅² | Wire the form to the real engine, via `computeClockBoard(facts, today, caseId)` (packages/rules, published — see DECISIONS.md D-25) — do not re-implement the gate/clock sequencing in `src/` | `src/routes/NewCase.tsx` | Typing the T02 scenario into the form produces exactly the T02 expected output on the deployed URL | M1-T5, M1-T7, M1-T8 |
 | **M2-T2** | A | ✅⁴ | Persist and reload a case: facts, result snapshot, `computedAt` | `amplify/data/resource.ts`, `src/lib/cases.ts` | A saved case survives a page reload and reopens with the identical clock board | M0-T5, M2-T1 |
 | **M2-T3** | B | ✅³ | Reasoning chain interaction: collapsed by default, expandable, printable | `src/components/ReasoningChain.tsx` | Every clock's reasoning expands and collapses; the page prints legibly | M1-T8 |
-| **M2-T4** | A | | Verify three hand-entered cases against the live deployment | — | T02, T10 and T13 entered by hand on the deployed URL give the expected statuses. Screenshots in chat. | M2-T1, M2-T2 |
+| **M2-T4** | A | ✅⁵ | Verify three hand-entered cases against the live deployment | — | T02, T10 and T13 entered by hand on the deployed URL give the expected statuses. Screenshots in chat. | M2-T1, M2-T2 |
 
 ² M2-T1 verified 18 Sep on the deployed URL: entering T02's facts (cheque #004521, memo info
 received 2026-08-20, nothing sent) produced overall `ACT_NOW` and notice deadline **2026-09-19**,
@@ -118,6 +118,25 @@ write and parsing `result` back on read. Also had to enable `strictNullChecks` i
 shape instead of erroring — bisected against a minimal repro schema to confirm the cause before
 changing the config. `tsc -b`, `npm run build` and all 110 rules tests stay green. The M1 fixture
 route (`/case/act-now`) still renders correctly — no regression.
+
+⁵ M2-T4 verified 18 Sep against `https://main.ddkpu3vpsh6s9.amplifyapp.com`, headless browser, one
+case per acceptance criterion:
+- **T02** (bankInfoReceivedDate 2026-08-20, nothing sent) → `Act now`, "Send the notice by
+  **2026-09-19** — 1 days left." Matches T02's deadline exactly; days-left reads 1 instead of the
+  table's 2 for the same reason M2-T1 already documented — real today has advanced past the test
+  table's assumed 2026-09-17.
+- **T10** (notice received 2026-09-01/received, complaint filed 2026-09-10, nothing paid) →
+  `Needs review`, Clock 4 `PREMATURE`, recovery path "Refile on the same cause of action, before
+  **2026-10-17**," citing *Yogendra Pratap Singh v. Savitri Pandey (2014) 10 SCC 713*. Matches T10
+  exactly. (T10's own unit test feeds `computeClock4` a hand-supplied cause-of-action date and
+  skips Clocks 1–3 entirely; reproducing it through the real form required backing into notice/
+  bank-info dates — 2026-08-01 received, notice sent 2026-08-15 — that make the full
+  `computeClockBoard` pipeline derive the same 2026-09-17 cause-of-action date on its own, per T06.)
+- **T13** (same notice setup, paid in full 2026-09-10, within the window ending 2026-09-16) →
+  `Resolved — no offence`, Clock 3 "Paid within the window ending 2026-09-16. No offence." Matches
+  T13 exactly.
+
+Screenshots: `t02-act-now.png`, `t10-premature.png`, `t13-resolved.png` (repo root).
 
 **M2 exit: if everything after this point failed, we would still have something to show.**
 Tag this commit `m2-demoable`.
