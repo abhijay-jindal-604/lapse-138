@@ -10,3 +10,7 @@ amplify_outputs.json
 *.log
 .vite/
 coverage/
+
+# amplify
+amplify_outputs*
+amplifyconfiguration*
