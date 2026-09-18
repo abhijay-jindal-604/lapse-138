@@ -1,0 +1,227 @@
+.clock-board {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 720px;
+}
+
+.clock-board__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.clock-board__meta {
+  margin: -8px 0 0;
+  font-size: 13px;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.01em;
+  color: #fff;
+  background: #6b6375;
+}
+
+.status-badge[data-overall-status='ON_TRACK'] {
+  background: #1e7a4a;
+}
+.status-badge[data-overall-status='ACT_NOW'] {
+  background: #b45f06;
+}
+.status-badge[data-overall-status='DEADLINE_MISSED'] {
+  background: #a52121;
+}
+.status-badge[data-overall-status='NEEDS_REVIEW'] {
+  background: #9a7c0a;
+}
+.status-badge[data-overall-status='RESOLVED'] {
+  background: #2f6f8f;
+}
+.status-badge[data-overall-status='NOT_A_138_CASE'] {
+  background: #55535c;
+}
+
+.provisional-flag {
+  font-size: 13px;
+  font-weight: 600;
+  color: #9a7c0a;
+  border: 1px dashed #9a7c0a;
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+
+.clock-board__clocks {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.clock-card {
+  border: 1px solid var(--border);
+  border-left-width: 5px;
+  border-radius: 8px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.clock-card h3 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.clock-card__status {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.clock-card__dates {
+  margin: 0;
+  font-size: 14.5px;
+}
+
+.clock-card__assumption {
+  margin: 0;
+  font-size: 13.5px;
+  font-style: italic;
+  padding: 8px 10px;
+  border-radius: 5px;
+  background: rgba(154, 124, 10, 0.12);
+}
+
+/* Clock-level status colours — borrow the same palette as the overall badge. */
+.clock-card[data-clock-status='PASS'],
+.clock-card[data-clock-status='RESOLVED'] {
+  border-left-color: #1e7a4a;
+}
+.clock-card[data-clock-status='live'],
+.clock-card[data-clock-status='ACT_NOW'],
+.clock-card[data-clock-status='not_yet_open'] {
+  border-left-color: #b45f06;
+}
+.clock-card[data-clock-status='DEADLINE_MISSED'],
+.clock-card[data-clock-status='PREMATURE'] {
+  border-left-color: #a52121;
+}
+.clock-card[data-clock-status='NEEDS_REVIEW'] {
+  border-left-color: #9a7c0a;
+}
+.clock-card[data-clock-status='NOT_A_138_CASE'] {
+  border-left-color: #55535c;
+}
+.clock-card[data-clock-status='PROCEED'],
+.clock-card[data-clock-status='PROCEED_WITH_NOTE'] {
+  border-left-color: #1e7a4a;
+}
+
+.date-estimate--advisory {
+  border-bottom: 1px dashed currentColor;
+  font-style: italic;
+  color: #9a7c0a;
+}
+
+.recovery-path {
+  border: 1px solid #2f6f8f;
+  border-radius: 6px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: rgba(47, 111, 143, 0.08);
+}
+
+.recovery-path__label {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #2f6f8f;
+}
+
+.recovery-path__headline {
+  margin: 0;
+  font-weight: 600;
+}
+
+.recovery-path__plain {
+  margin: 0;
+  font-size: 14px;
+}
+
+.recovery-path__source {
+  margin: 0;
+  font-size: 12.5px;
+  font-style: italic;
+}
+
+/* Reasoning chain — shared by every clock card, via ReasoningChain.tsx */
+.reasoning-chain {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.reasoning-step {
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.reasoning-step__rule {
+  margin: 0;
+  font-weight: 600;
+  font-size: 13.5px;
+}
+
+.reasoning-step__meta {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px 12px;
+}
+
+.reasoning-step__meta > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.reasoning-step__meta dt {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text);
+}
+
+.reasoning-step__meta dd {
+  margin: 0;
+  font-size: 13px;
+  font-family: var(--mono);
+}
+
+.reasoning-step__plain {
+  margin: 0;
+  font-size: 13.5px;
+}
+
+@media (max-width: 640px) {
+  .reasoning-step__meta {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
