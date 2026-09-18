@@ -5,9 +5,13 @@
 
 import { addDays, addMonths, compare, diffDays, type ISODate } from './dates.js'
 import type {
+  AdvisoryDate,
   CaseFacts,
   Clock1Result,
   Clock2Result,
+  Clock3Result,
+  Clock4Result,
+  ComputedDate,
   GateAResult,
   RecoveryPath,
   ReasoningStep,
@@ -338,5 +342,326 @@ export function computeClock2(facts: CaseFacts, today: ISODate): Clock2Result {
     assumption,
     recoveryPath: buildClock2RecoveryPath(facts, today),
     reasoning,
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Clock 3 — payment window, §138 proviso (c) (§3 Clock 3)
+// ---------------------------------------------------------------------------
+
+const CLOCK3_SOURCE =
+  'NI Act §138 proviso (c); day-counting per §9 General Clauses Act 1897, applied in Econ Antri Ltd v. Rom Industries Ltd (2014) 11 SCC 769'
+const CLOCK3_COUNTING_RULE =
+  'Exclude the trigger day; payment window ends = trigger + 15 days; the offence is complete the day after'
+const DEEMED_SERVICE_SOURCE = 'C.C. Alavi Haji v. Palapetty Muhammed (2007) 6 SCC 555'
+const ADVISORY_SOURCE = '§27 General Clauses Act 1897 (presumption of service by post in the ordinary course)'
+const ADVISORY_NOTE = 'Typical postal transit, not a legal deadline — confirm your actual tracking receipt.'
+
+export function computeClock3(facts: CaseFacts, today: ISODate): Clock3Result {
+  const trigger = facts.noticeReceivedDate
+  const deemedService =
+    trigger !== null && (facts.noticeServiceMode === 'refused' || facts.noticeServiceMode === 'unclaimed')
+
+  if (trigger === null) {
+    // Sent, but no tracking result yet: a point-estimate here would be false
+    // precision, so this emits an advisory range instead of NEEDS_REVIEW with
+    // nothing — §3 Clock 3, T25. Every figure is replaced the moment an actual
+    // receipt date is entered.
+    if (facts.noticeServiceMode === 'unknown' && facts.noticeSentDate !== null) {
+      const advisoryReceiptEarliest = addDays(facts.noticeSentDate, 3)
+      const advisoryReceiptLatest = addDays(facts.noticeSentDate, 7)
+      const paymentWindowEnds: AdvisoryDate = {
+        basis: 'advisory',
+        earliest: addDays(advisoryReceiptEarliest, 15),
+        latest: addDays(advisoryReceiptLatest, 15),
+        note: ADVISORY_NOTE,
+      }
+      const causeOfActionDate: AdvisoryDate = {
+        basis: 'advisory',
+        earliest: addDays(paymentWindowEnds.earliest, 1),
+        latest: addDays(paymentWindowEnds.latest, 1),
+        note: ADVISORY_NOTE,
+      }
+      // The single "safe" point is the latest bound of the range: filing any
+      // earlier risks a premature complaint if actual service landed late in
+      // the estimated window.
+      const earliestSafeFilingDate: AdvisoryDate = {
+        basis: 'advisory',
+        earliest: causeOfActionDate.latest,
+        latest: causeOfActionDate.latest,
+        note: 'The latest the cause of action could accrue under this estimate — filing before this risks a premature complaint if actual service landed later in the range.',
+      }
+
+      return {
+        clock: 'payment_window',
+        status: 'NEEDS_REVIEW',
+        reviewReason: 'pending_service_confirmation',
+        paymentWindowEnds,
+        causeOfActionDate,
+        earliestSafeFilingDate,
+        reasoning: [
+          {
+            rule: 'A notice sent but not yet confirmed received gets an advisory estimate, never an asserted date',
+            source: ADVISORY_SOURCE,
+            triggerDate: facts.noticeSentDate,
+            countingRule: 'Advisory only: presumed postal transit of 3-7 days from dispatch, not a computed legal deadline',
+            resultDate: null,
+            plainEnglish: `The notice was sent on ${facts.noticeSentDate} but there is no confirmed receipt or refusal date yet. Based on typical postal transit (3 to 7 days), the 15-day payment window would run out somewhere between ${paymentWindowEnds.earliest} and ${paymentWindowEnds.latest} — this is an advisory estimate, not a computed deadline. The moment you confirm the actual receipt (or refusal) date, every figure here is replaced by a computed one.`,
+          },
+        ],
+      }
+    }
+
+    return {
+      clock: 'payment_window',
+      status: 'NEEDS_REVIEW',
+      reviewReason: 'missing_trigger',
+      reasoning: [
+        {
+          rule: 'The 15-day payment window runs from the date the notice was received, or deemed served',
+          source: CLOCK3_SOURCE,
+          triggerDate: null,
+          countingRule: 'n/a',
+          resultDate: null,
+          plainEnglish:
+            'Neither a confirmed notice receipt date nor a dispatch date is on file, so the 15-day payment window has nothing to run from. This needs a human to supply one of those dates before this clock can be computed — the engine will not guess.',
+        },
+      ],
+    }
+  }
+
+  const paymentWindowEndsDate = addDays(trigger, 15)
+  const paymentWindowEnds: ComputedDate = { basis: 'computed', date: paymentWindowEndsDate }
+  const receivedOrDeemed = deemedService ? 'deemed served' : 'received'
+
+  const step = (plainEnglish: string): ReasoningStep => ({
+    rule: 'The drawer has 15 days from receipt (or deemed service) of the notice to pay before the offence is complete',
+    source: CLOCK3_SOURCE,
+    triggerDate: trigger,
+    countingRule: CLOCK3_COUNTING_RULE,
+    resultDate: paymentWindowEndsDate,
+    plainEnglish,
+  })
+
+  const reasoning: ReasoningStep[] = []
+  if (deemedService) {
+    reasoning.push({
+      rule: 'Notice refused or returned unclaimed, sent by registered post to the correct address, counts as deemed service',
+      source: DEEMED_SERVICE_SOURCE,
+      triggerDate: trigger,
+      countingRule: 'n/a',
+      resultDate: null,
+      plainEnglish: `The notice was ${facts.noticeServiceMode} on ${trigger}. Sent by registered post to the correct address, the law treats this as deemed service on that date — not actual receipt.`,
+    })
+  }
+
+  if (
+    facts.paymentStatus === 'full' &&
+    facts.paymentDate !== null &&
+    compare(facts.paymentDate, paymentWindowEndsDate) <= 0
+  ) {
+    reasoning.push(
+      step(
+        `The notice was ${receivedOrDeemed} on ${trigger}, giving a payment window ending ${paymentWindowEndsDate}. Full payment was made on ${facts.paymentDate}, within that window — no offence under §138. This matter is resolved.`,
+      ),
+    )
+    return {
+      clock: 'payment_window',
+      status: 'RESOLVED',
+      paymentWindowEnds,
+      reasoning,
+    }
+  }
+
+  if (facts.paymentStatus === 'part') {
+    reasoning.push(
+      step(
+        `The notice was ${receivedOrDeemed} on ${trigger}, giving a payment window ending ${paymentWindowEndsDate}. Only part payment has been made, which does not discharge the cheque — a human needs to review whether the remaining balance still supports a §138 complaint.`,
+      ),
+    )
+    return {
+      clock: 'payment_window',
+      status: 'NEEDS_REVIEW',
+      reviewReason: 'part_payment',
+      reasoning,
+    }
+  }
+
+  if (compare(today, paymentWindowEndsDate) <= 0) {
+    const daysRemaining = diffDays(today, paymentWindowEndsDate)
+    reasoning.push(
+      step(
+        `The notice was ${receivedOrDeemed} on ${trigger}. The drawer has until ${paymentWindowEndsDate} — ${daysRemaining} day${daysRemaining === 1 ? '' : 's'} from today — to pay before the offence is complete. A complaint cannot be filed yet.`,
+      ),
+    )
+    return {
+      clock: 'payment_window',
+      status: 'live',
+      paymentWindowEnds,
+      daysRemaining,
+      deemedService,
+      reasoning,
+    }
+  }
+
+  const causeOfActionDateStr = addDays(paymentWindowEndsDate, 1)
+  reasoning.push(
+    step(
+      `The notice was ${receivedOrDeemed} on ${trigger}. The payment window closed on ${paymentWindowEndsDate} without full payment — the offence under §138 is complete as of ${causeOfActionDateStr}.`,
+    ),
+  )
+  return {
+    clock: 'payment_window',
+    status: 'PASS',
+    paymentWindowEnds,
+    causeOfActionDate: { basis: 'computed', date: causeOfActionDateStr },
+    deemedService,
+    reasoning,
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Clock 4 — complaint filing, §142(1)(b) (§3 Clock 4)
+//
+// Takes `causeOfActionDate` as an explicit ISODate, not a Clock3Result: Clock3
+// only resolves that date once it is a fixed calendar fact (its 'PASS'
+// branch), independent of whether "today" has caught up to it yet, and
+// Clock4Result's own status union has no NEEDS_REVIEW member — this function
+// assumes the caller has already established that the cause of action has a
+// known date before calling it (§3: "only evaluated once causeOfActionDate
+// exists").
+// ---------------------------------------------------------------------------
+
+const CLOCK4_SOURCE = 'NI Act §142(1)(b) + proviso'
+const CLOCK4_COUNTING_RULE =
+  'Exclude the trigger day (cause of action date); filing deadline = trigger + 1 calendar month, clamped to month-end'
+const PREMATURE_SOURCE = 'Yogendra Pratap Singh v. Savitri Pandey (2014) 10 SCC 713'
+const CONDONE_SOURCE = 'proviso to NI Act §142(1)(b)'
+
+export function computeClock4(facts: CaseFacts, today: ISODate, causeOfActionDate: ISODate): Clock4Result {
+  const filingWindowOpens = causeOfActionDate
+  const filingDeadline = addMonths(causeOfActionDate, 1)
+
+  const step = (plainEnglish: string): ReasoningStep => ({
+    rule: 'A §138 complaint must be filed within one month of the cause of action, condonable on sufficient cause',
+    source: CLOCK4_SOURCE,
+    triggerDate: causeOfActionDate,
+    countingRule: CLOCK4_COUNTING_RULE,
+    resultDate: filingDeadline,
+    plainEnglish,
+  })
+
+  if (facts.complaintFiledDate !== null) {
+    const filedDate = facts.complaintFiledDate
+
+    if (compare(filedDate, filingWindowOpens) === -1) {
+      // Not a defaulted true: whether time remains to refile is a live fact
+      // about today vs. the original deadline, frequently already false by
+      // the time this defect is even discovered (LEGAL_RULES.md §3 Clock 4).
+      const timeRemains = compare(today, filingDeadline) <= 0
+      const recoveryPath: RecoveryPath = {
+        kind: 'REFILE_SAME_CAUSE',
+        filingDeadline,
+        timeRemains,
+        source: PREMATURE_SOURCE,
+        plainEnglish: timeRemains
+          ? `This complaint was filed on ${filedDate}, before the cause of action accrued on ${filingWindowOpens} — it cannot be taken cognizance of, and waiting cannot cure this. It must be withdrawn. A fresh complaint on the same cause of action can still be filed: time remains until the original filing deadline of ${filingDeadline}. There is no fresh window and no fresh cause of action here, unlike Clock 2's re-presentation route.`
+          : `This complaint was filed on ${filedDate}, before the cause of action accrued on ${filingWindowOpens} — it cannot be taken cognizance of, and waiting cannot cure this. It must be withdrawn. The original filing deadline of ${filingDeadline} has already passed as of today (${today}), so a fresh complaint on the same cause of action would itself need a condonation application under the proviso to §142(1)(b), on sufficient cause, at the court's discretion.`,
+      }
+      return {
+        clock: 'complaint_filing',
+        status: 'PREMATURE',
+        filingWindowOpens,
+        filingDeadline,
+        complaintFiledDate: filedDate,
+        recoveryPath,
+        reasoning: [
+          step(
+            `The cause of action accrues on ${filingWindowOpens}, but the complaint was filed on ${filedDate} — before that date. A complaint filed before the cause of action accrues cannot be taken cognizance of; this defect cannot be cured by waiting.`,
+          ),
+        ],
+      }
+    }
+
+    if (compare(filedDate, filingDeadline) <= 0) {
+      return {
+        clock: 'complaint_filing',
+        status: 'PASS',
+        filingWindowOpens,
+        filingDeadline,
+        complaintFiledDate: filedDate,
+        reasoning: [
+          step(
+            `The cause of action accrued on ${filingWindowOpens}, giving a filing deadline of ${filingDeadline}. The complaint was filed on ${filedDate}, within that window.`,
+          ),
+        ],
+      }
+    }
+
+    return {
+      clock: 'complaint_filing',
+      status: 'DEADLINE_MISSED',
+      filingWindowOpens,
+      filingDeadline,
+      recoveryPath: {
+        kind: 'CONDONE_DELAY',
+        source: CONDONE_SOURCE,
+        plainEnglish: `The complaint was filed on ${filedDate}, after the filing deadline of ${filingDeadline}. The court may — never automatically — condone this delay on an application showing sufficient cause under the proviso to §142(1)(b). This is discretionary, not an entitlement.`,
+      },
+      reasoning: [
+        step(
+          `The cause of action accrued on ${filingWindowOpens}, giving a filing deadline of ${filingDeadline}. The complaint was filed on ${filedDate}, after that date.`,
+        ),
+      ],
+    }
+  }
+
+  if (compare(today, filingWindowOpens) === -1) {
+    const opensInDays = diffDays(today, filingWindowOpens)
+    return {
+      clock: 'complaint_filing',
+      status: 'not_yet_open',
+      filingWindowOpens,
+      filingDeadline,
+      opensInDays,
+      reasoning: [
+        step(
+          `The cause of action accrues on ${filingWindowOpens} — the filing window is not open yet, and opens in ${opensInDays} day${opensInDays === 1 ? '' : 's'}. A complaint filed before then cannot be taken cognizance of.`,
+        ),
+      ],
+    }
+  }
+
+  if (compare(today, filingDeadline) <= 0) {
+    const daysRemaining = diffDays(today, filingDeadline)
+    return {
+      clock: 'complaint_filing',
+      status: 'live',
+      filingWindowOpens,
+      filingDeadline,
+      daysRemaining,
+      reasoning: [
+        step(
+          `The cause of action accrued on ${filingWindowOpens}. You have until ${filingDeadline} — ${daysRemaining} day${daysRemaining === 1 ? '' : 's'} from today — to file the complaint.`,
+        ),
+      ],
+    }
+  }
+
+  return {
+    clock: 'complaint_filing',
+    status: 'DEADLINE_MISSED',
+    filingWindowOpens,
+    filingDeadline,
+    recoveryPath: {
+      kind: 'CONDONE_DELAY',
+      source: CONDONE_SOURCE,
+      plainEnglish: `The filing deadline of ${filingDeadline} has passed without a complaint being filed. The court may — never automatically — condone this delay on an application showing sufficient cause under the proviso to §142(1)(b). This is discretionary, not an entitlement.`,
+    },
+    reasoning: [
+      step(
+        `The cause of action accrued on ${filingWindowOpens}, giving a filing deadline of ${filingDeadline}. Today is ${today} and no complaint has been filed — this window is closed.`,
+      ),
+    ],
   }
 }

@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { computeClock1, computeClock2, computeGateA, toIntegerPaise } from '../src/index.js'
+import { computeClock1, computeClock2, computeClock3, computeClock4, computeGateA, toIntegerPaise } from '../src/index.js'
 import type { CaseFacts } from '../src/index.js'
 
 // Tests named T01-T23 correspond directly to LEGAL_RULES.md §5's test table.
-// This file covers M1-T3's slice: Gate A, Clock 1, Clock 2.
+// This file covers M1-T3's slice (Gate A, Clock 1, Clock 2) and M1-T4's slice
+// (Clock 3, Clock 4: T06-T14, T20-T21).
 
 function baseFacts(overrides: Partial<CaseFacts> = {}): CaseFacts {
   return {
@@ -215,5 +216,202 @@ describe('computeClock2', () => {
     const facts = baseFacts({ bankInfoReceivedDate: '2026-07-25', noticeSentDate: '2026-08-30' })
     const result = computeClock2(facts, '2026-09-17')
     expect(result.status).toBe('DEADLINE_MISSED')
+  })
+})
+
+describe('computeClock3', () => {
+  it('T06: 15-day window, exclusion — window ends 2026-09-16, cause of action 2026-09-17', () => {
+    const facts = baseFacts({ noticeReceivedDate: '2026-09-01', noticeServiceMode: 'received' })
+    const result = computeClock3(facts, '2026-09-20')
+    expect(result.status).toBe('PASS')
+    if (result.status === 'PASS') {
+      expect(result.paymentWindowEnds).toEqual({ basis: 'computed', date: '2026-09-16' })
+      expect(result.causeOfActionDate).toEqual({ basis: 'computed', date: '2026-09-17' })
+      expect(result.deemedService).toBe(false)
+    }
+    expect(result.reasoning.length).toBeGreaterThan(0)
+  })
+
+  it('T13: paid within 15 days → RESOLVED, no offence', () => {
+    const facts = baseFacts({
+      noticeReceivedDate: '2026-09-01',
+      noticeServiceMode: 'received',
+      paymentStatus: 'full',
+      paymentDate: '2026-09-10',
+    })
+    const result = computeClock3(facts, '2026-09-12')
+    expect(result.status).toBe('RESOLVED')
+    if (result.status === 'RESOLVED') {
+      expect(result.paymentWindowEnds).toEqual({ basis: 'computed', date: '2026-09-16' })
+    }
+  })
+
+  it('T14: part payment → NEEDS_REVIEW', () => {
+    const facts = baseFacts({
+      noticeReceivedDate: '2026-09-01',
+      noticeServiceMode: 'received',
+      paymentStatus: 'part',
+    })
+    const result = computeClock3(facts, '2026-09-12')
+    expect(result.status).toBe('NEEDS_REVIEW')
+    if (result.status === 'NEEDS_REVIEW' && 'reviewReason' in result) {
+      expect(result.reviewReason).toBe('part_payment')
+    }
+  })
+
+  it('T20: unknown notice receipt date, no sent date either → NEEDS_REVIEW, no guessed date anywhere', () => {
+    const facts = baseFacts({
+      noticeReceivedDate: null,
+      noticeServiceMode: 'unknown',
+      noticeSentDate: null,
+    })
+    const result = computeClock3(facts, '2026-09-12')
+    expect(result.status).toBe('NEEDS_REVIEW')
+    if (result.status === 'NEEDS_REVIEW' && 'reviewReason' in result) {
+      expect(result.reviewReason).toBe('missing_trigger')
+      // This variant of the union carries no date fields at all — the type
+      // itself enforces "no guessed date anywhere in output".
+      expect('paymentWindowEnds' in result).toBe(false)
+    }
+    for (const step of result.reasoning) {
+      expect(step.resultDate).toBeNull()
+    }
+  })
+
+  it('T25 setup: notice sent, receipt unknown → advisory window, not asserted as fact', () => {
+    const facts = baseFacts({
+      noticeReceivedDate: null,
+      noticeServiceMode: 'unknown',
+      noticeSentDate: '2026-09-01',
+    })
+    const result = computeClock3(facts, '2026-09-12')
+    expect(result.status).toBe('NEEDS_REVIEW')
+    if (result.status === 'NEEDS_REVIEW' && 'reviewReason' in result && result.reviewReason === 'pending_service_confirmation') {
+      expect(result.paymentWindowEnds.basis).toBe('advisory')
+      expect(result.paymentWindowEnds.earliest).toBe('2026-09-19')
+      expect(result.paymentWindowEnds.latest).toBe('2026-09-23')
+    } else {
+      throw new Error(`expected pending_service_confirmation, got ${JSON.stringify(result)}`)
+    }
+  })
+
+  it('T21: deemed service on refusal — window ends 2026-09-20, reasoning says deemed service', () => {
+    const facts = baseFacts({ noticeReceivedDate: '2026-09-05', noticeServiceMode: 'refused' })
+    const result = computeClock3(facts, '2026-09-25')
+    expect(result.status).toBe('PASS')
+    if (result.status === 'PASS') {
+      expect(result.paymentWindowEnds).toEqual({ basis: 'computed', date: '2026-09-20' })
+      expect(result.deemedService).toBe(true)
+    }
+    expect(result.reasoning.some((step) => step.plainEnglish.toLowerCase().includes('deemed service'))).toBe(true)
+  })
+
+  it('unclaimed return is deemed service the same way as refusal', () => {
+    const facts = baseFacts({ noticeReceivedDate: '2026-09-05', noticeServiceMode: 'unclaimed' })
+    const result = computeClock3(facts, '2026-09-10')
+    expect(result.status).toBe('live')
+    if (result.status === 'live') {
+      expect(result.deemedService).toBe(true)
+    }
+  })
+
+  it('live before the payment window closes', () => {
+    const facts = baseFacts({ noticeReceivedDate: '2026-09-01', noticeServiceMode: 'received' })
+    const result = computeClock3(facts, '2026-09-10')
+    expect(result.status).toBe('live')
+    if (result.status === 'live') {
+      expect(result.paymentWindowEnds).toEqual({ basis: 'computed', date: '2026-09-16' })
+      expect(result.daysRemaining).toBe(6)
+    }
+  })
+
+  it('both trigger dates missing → NEEDS_REVIEW, missing_trigger', () => {
+    const facts = baseFacts({ noticeReceivedDate: null, noticeServiceMode: 'received', noticeSentDate: null })
+    const result = computeClock3(facts, '2026-09-10')
+    expect(result.status).toBe('NEEDS_REVIEW')
+    if (result.status === 'NEEDS_REVIEW' && 'reviewReason' in result) {
+      expect(result.reviewReason).toBe('missing_trigger')
+    }
+  })
+})
+
+describe('computeClock4', () => {
+  it('T07: one-month filing window — cause of action 2026-09-17 → filing deadline 2026-10-17', () => {
+    const result = computeClock4(baseFacts(), '2026-09-17', '2026-09-17')
+    expect(result.filingDeadline).toBe('2026-10-17')
+  })
+
+  it('T08: month-end clamping — cause of action 2026-01-31 → filing deadline 2026-02-28', () => {
+    const result = computeClock4(baseFacts(), '2026-01-31', '2026-01-31')
+    expect(result.filingDeadline).toBe('2026-02-28')
+  })
+
+  it('T09: leap-year clamping — cause of action 2028-01-31 → filing deadline 2028-02-29', () => {
+    const result = computeClock4(baseFacts(), '2028-01-31', '2028-01-31')
+    expect(result.filingDeadline).toBe('2028-02-29')
+  })
+
+  it('T10: premature complaint → PREMATURE, cites Yogendra Pratap Singh, time remains to refile', () => {
+    const facts = baseFacts({ complaintFiledDate: '2026-09-10' })
+    const result = computeClock4(facts, '2026-09-17', '2026-09-17')
+    expect(result.status).toBe('PREMATURE')
+    if (result.status === 'PREMATURE') {
+      expect(result.recoveryPath.kind).toBe('REFILE_SAME_CAUSE')
+      expect(result.recoveryPath.source).toContain('Yogendra Pratap Singh')
+      if (result.recoveryPath.kind === 'REFILE_SAME_CAUSE') {
+        expect(result.recoveryPath.timeRemains).toBe(true)
+        expect(result.recoveryPath.filingDeadline).toBe('2026-10-17')
+      }
+    }
+  })
+
+  it('T10b: premature complaint discovered after the original filing deadline → timeRemains false, does not default to true', () => {
+    const facts = baseFacts({ complaintFiledDate: '2026-09-10' })
+    const result = computeClock4(facts, '2026-11-01', '2026-09-17')
+    expect(result.status).toBe('PREMATURE')
+    if (result.status === 'PREMATURE' && result.recoveryPath.kind === 'REFILE_SAME_CAUSE') {
+      expect(result.recoveryPath.timeRemains).toBe(false)
+    }
+  })
+
+  it('T11: filed on the last day → in time', () => {
+    const facts = baseFacts({ complaintFiledDate: '2026-10-17' })
+    const result = computeClock4(facts, '2026-10-17', '2026-09-17')
+    expect(result.status).toBe('PASS')
+  })
+
+  it('T12: filed one day late → DEADLINE_MISSED, discretionary condonation path', () => {
+    const facts = baseFacts({ complaintFiledDate: '2026-10-18' })
+    const result = computeClock4(facts, '2026-10-18', '2026-09-17')
+    expect(result.status).toBe('DEADLINE_MISSED')
+    if (result.status === 'DEADLINE_MISSED') {
+      expect(result.recoveryPath.kind).toBe('CONDONE_DELAY')
+      expect(result.recoveryPath.plainEnglish.toLowerCase()).toContain('may')
+      expect(result.recoveryPath.plainEnglish.toLowerCase()).not.toContain('will be')
+    }
+  })
+
+  it('not filed, window not yet open', () => {
+    const result = computeClock4(baseFacts(), '2026-09-10', '2026-09-17')
+    expect(result.status).toBe('not_yet_open')
+    if (result.status === 'not_yet_open') {
+      expect(result.opensInDays).toBe(7)
+    }
+  })
+
+  it('not filed, live within the filing window', () => {
+    const result = computeClock4(baseFacts(), '2026-10-01', '2026-09-17')
+    expect(result.status).toBe('live')
+    if (result.status === 'live') {
+      expect(result.daysRemaining).toBe(16)
+    }
+  })
+
+  it('not filed, deadline missed → DEADLINE_MISSED with condonation path', () => {
+    const result = computeClock4(baseFacts(), '2026-11-01', '2026-09-17')
+    expect(result.status).toBe('DEADLINE_MISSED')
+    if (result.status === 'DEADLINE_MISSED') {
+      expect(result.recoveryPath.kind).toBe('CONDONE_DELAY')
+    }
   })
 })
