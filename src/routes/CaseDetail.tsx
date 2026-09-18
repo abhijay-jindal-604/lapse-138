@@ -7,6 +7,7 @@ import needsReview from '../../packages/rules/fixtures/needs-review.json'
 import { ClockBoard } from '../components/ClockBoard'
 import { DateTravel } from '../components/DateTravel'
 import { loadCase } from '../lib/cases'
+import { downloadICS, getReminderEvents } from '../lib/ics'
 
 // The dashboard still links to these three fixture IDs (M1) alongside real, persisted
 // cases (M2-T2) — check the fixtures first since they're free, then fall back to Amplify.
@@ -57,6 +58,11 @@ export function CaseDetail() {
       <p className="case-detail__links">
         <Link to={`/case/${caseId}/synopsis`}>View draft synopsis</Link>
       </p>
+      {getReminderEvents(board).length > 0 && (
+        <button type="button" className="case-form__submit" onClick={() => downloadICS(board)}>
+          Download reminders (.ics)
+        </button>
+      )}
     </section>
   )
 }

@@ -211,7 +211,7 @@ behind a flag, and move on — do not let a stretch item bleed into M5's protect
 
 | ID | Lane | ∥ | Goal | Touches | Accept when | Needs |
 |---|---|---|---|---|---|---|
-| **M5-T0** | B | | Reminder export: `.ics` file for the notice and filing deadlines | `src/lib/ics.ts` | Downloaded `.ics` opens in a calendar app with two events, correctly dated, titled with the case name | M4-T1 |
+| **M5-T0** | B | ✅ | Reminder export: `.ics` file for the notice and filing deadlines | `src/lib/ics.ts` | Downloaded `.ics` opens in a calendar app with two events, correctly dated, titled with the case name | M4-T1 |
 | **M5-T1** | A | | Cognito auth via `<Authenticator>`, plus owner-scoped data | `amplify/auth/resource.ts`, `amplify/data/resource.ts`, `src/App.tsx` | Sign-up, sign-in and sign-out work on the deployed URL. A second account cannot see the first account's cases. **Create the demo account now and stay signed in.** | M4-T4 |
 | **M5-T2** | B | | Visual polish pass: typography, spacing, colour for urgency, the hero-case treatment | `src/styles/`, components | Side-by-side screenshots before and after. The dashboard reads at a glance on a 1080p recording. | M4-T3 |
 | **M5-T3** | B | | Empty, loading and error states | components | Every async action has a loading state; a forced Bedrock failure shows a readable error and does not lose entered data | M4-T2 |
