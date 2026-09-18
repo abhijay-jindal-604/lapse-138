@@ -112,6 +112,18 @@ couple of hours, open an AWS Support "Account and billing" case (free on Basic s
 cleared. Proceeding with M0-T5 (backend skeleton) in the meantime since it needs
 CloudFormation/AppSync/DynamoDB/S3 only, none of which are affected by this hold.
 
+**M0-T1 retry, 2026-09-18 19:36 IST:** re-ran the same `converse` call again, ~9 hours after
+the initial hold and ~9 hours past AWS's own stated <2-hour clearance window — still the
+identical `ValidationException: Operation not allowed`, hold still not cleared. Also confirmed
+`aws support describe-severity-levels` returns `SubscriptionRequiredException: Amazon Web
+Services Premium Support Subscription is required to use this service` — despite AWS's own
+guidance that Basic support gets a free "Account and billing" case type, the Support **API**
+itself is gated to Business/Enterprise plans regardless of case type, so this case cannot be
+opened via CLI and needs the AWS Support Center web console (console login), which is a
+human action, not something to script around. Decision: stop retrying via CLI here; the next
+step is a human opening the case in the console. M3 (Bedrock-dependent) work stays blocked
+until either that case resolves the hold or a retry of this exact command succeeds.
+
 ---
 
 ## D-05 · No Textract
