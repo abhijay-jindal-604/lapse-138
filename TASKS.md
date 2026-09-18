@@ -150,10 +150,20 @@ Tag this commit `m2-demoable`.
 |---|---|---|---|---|---|---|
 | **M3-T1** | A | | `extractFacts` Lambda: Bedrock Converse with a document/image block, structured JSON out | `amplify/functions/extractFacts/` | Given the sample memo, returns JSON with cheque number, date, amount, memo date and dishonour reason, each with `confidence` and `sourceQuote` | M0-T1, M0-T5 |
 | **M3-T2** | A | | Enforce the boundary in code | `amplify/functions/extractFacts/handler.ts` | A field returned without a `sourceQuote` is dropped. The six human-only fields **and the three affidavit-boundary fields** from LEGAL_RULES.md §2 are stripped from the model output unconditionally. A unit test proves both. | M3-T1 |
-| **M3-T3** | B | | Upload UI to S3 with limits and error states | `src/components/Upload.tsx` | A PDF and a JPEG both upload; a 6 MB file is rejected with a readable message, not a crash | M0-T5 |
+| **M3-T3** | B | ✅¹ | Upload UI to S3 with limits and error states | `src/components/Upload.tsx` | A PDF and a JPEG both upload; a 6 MB file is rejected with a readable message, not a crash | M0-T5 |
 | **M3-T4** | B | | Confirmation screen | `src/routes/Confirm.tsx` | Every extracted field is editable and shows its source quote on hover; low-confidence fields are visibly flagged; the six human-only fields appear as explicit questions that must be answered before continuing | M3-T1, M3-T3 |
 | **M3-T5** | A+B | | Four fictional sample documents: a dishonour memo, a bank return memo, a cheque image, a memo with a missing field | `samples/` | All four upload and extract successfully. Every one is visibly watermarked **SAMPLE — NOT A REAL DOCUMENT**. No real names, banks, account numbers or IFSC codes. | M3-T1 |
 | **M3-T6** | B | | Render the advisory receipt-date range (logic already tested in M1-T5/T25) in the confirmation and clock-board UI | `src/components/ClockBoard.tsx` | An `unknown`-service-mode case shows the advisory window in visibly distinct (dashed/muted) styling next to computed deadlines, labelled "advisory"; entering an actual receipt date replaces it with a normal computed deadline | M1-T5, M1-T8 |
+
+¹ M3-T3 verified 19 Sep in a local headless browser against the sandbox backend (S3 bucket
+`amplify-lapse-aj-sandbox--lapsedocumentsbucket6fc2-plbn0d2rqhir`, `ap-south-1`), reachable via a
+temporary `/new/upload` route (`src/routes/UploadDocument.tsx`) that hosts the component pending
+M3-T4's real confirm-and-edit flow. A 28-byte `small-memo.pdf` and a 1 KB `small-cheque.jpg` both
+uploaded and confirmed via `uploadData`'s resolved `path`; a 6 MB `.pdf` was rejected client-side
+before any network call with `"big-file.pdf" is 6.0 MB, over the 5 MB limit. Choose a smaller
+file.` — no crash, no console error. Limit is 5 MB (deliberately under the 6 MB test file), types
+accepted are `application/pdf` and `image/jpeg` only. Not yet deployed to the live Amplify URL —
+that's a plain `git push`, not part of this task's scope.
 
 **M3 exit:** upload → extract → confirm → correct clock board, on the live URL. Tag `m3-demoable`.
 

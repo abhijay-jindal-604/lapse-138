@@ -4,6 +4,7 @@ import { Dashboard } from './routes/Dashboard'
 import { Layout } from './routes/Layout'
 import { NewCase } from './routes/NewCase'
 import { Synopsis } from './routes/Synopsis'
+import { UploadDocument } from './routes/UploadDocument'
 
 function App() {
   return (
@@ -11,6 +12,7 @@ function App() {
       <Route element={<Layout />}>
         <Route path="/" element={<Dashboard />} />
         <Route path="/new" element={<NewCase />} />
+        <Route path="/new/upload" element={<UploadDocument />} />
         <Route path="/case/:caseId" element={<CaseDetail />} />
         <Route path="/case/:caseId/synopsis" element={<Synopsis />} />
       </Route>
