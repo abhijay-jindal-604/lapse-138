@@ -124,6 +124,14 @@ human action, not something to script around. Decision: stop retrying via CLI he
 step is a human opening the case in the console. M3 (Bedrock-dependent) work stays blocked
 until either that case resolves the hold or a retry of this exact command succeeds.
 
+**M0-T1 retry, 2026-09-19:** re-ran the same `converse` call again, ~24 hours after the
+initial hold — still the identical `ValidationException: Operation not allowed`. No sign in
+this repo or chat history that the AWS Support Center console case from the note above was
+ever actually filed (only recommended). Decision: this now needs a human to log into the AWS
+Support Center console and open that "Account and billing" case — it will not resolve itself
+by further CLI retries. M3 and all Bedrock-dependent M4 work (M4-T1, M4-T2, M4-T7) stay
+blocked in the meantime; M5-T0/T1 do not depend on Bedrock and are the next unblocked work.
+
 ---
 
 ## D-05 · No Textract
