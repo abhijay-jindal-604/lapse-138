@@ -80,10 +80,18 @@ browser check, not just localhost — all three routes render with nav and the d
 
 | ID | Lane | ∥ | Goal | Touches | Accept when | Needs |
 |---|---|---|---|---|---|---|
-| **M2-T1** | B | | Wire the form to the real engine, via `computeClockBoard(facts, today, caseId)` (packages/rules, published — see DECISIONS.md D-25) — do not re-implement the gate/clock sequencing in `src/` | `src/routes/NewCase.tsx` | Typing the T02 scenario into the form produces exactly the T02 expected output on the deployed URL | M1-T5, M1-T7, M1-T8 |
+| **M2-T1** | B | ✅² | Wire the form to the real engine, via `computeClockBoard(facts, today, caseId)` (packages/rules, published — see DECISIONS.md D-25) — do not re-implement the gate/clock sequencing in `src/` | `src/routes/NewCase.tsx` | Typing the T02 scenario into the form produces exactly the T02 expected output on the deployed URL | M1-T5, M1-T7, M1-T8 |
 | **M2-T2** | A | | Persist and reload a case: facts, result snapshot, `computedAt` | `amplify/data/resource.ts`, `src/lib/cases.ts` | A saved case survives a page reload and reopens with the identical clock board | M0-T5, M2-T1 |
 | **M2-T3** | B | | Reasoning chain interaction: collapsed by default, expandable, printable | `src/components/ReasoningChain.tsx` | Every clock's reasoning expands and collapses; the page prints legibly | M1-T8 |
 | **M2-T4** | A | | Verify three hand-entered cases against the live deployment | — | T02, T10 and T13 entered by hand on the deployed URL give the expected statuses. Screenshots in chat. | M2-T1, M2-T2 |
+
+² M2-T1 verified 18 Sep on the deployed URL: entering T02's facts (cheque #004521, memo info
+received 2026-08-20, nothing sent) produced overall `ACT_NOW` and notice deadline **2026-09-19**,
+matching T02 exactly. "1 day left" on screen instead of T02's written "2 days left" is expected,
+not a bug — `NewCase.tsx` correctly calls `todayInIST()` for the live clock, and the actual
+calendar date has advanced one real day past T02's assumed 2026-09-17 "today" since the test
+table was written. The deadline date and status, the two fields the acceptance criterion is
+actually about, match exactly.
 
 **M2 exit: if everything after this point failed, we would still have something to show.**
 Tag this commit `m2-demoable`.
