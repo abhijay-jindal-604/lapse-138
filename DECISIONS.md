@@ -442,3 +442,34 @@ Also closed: a literal T01–T27 audit (`packages/rules/test/table.test.ts`) che
 LEGAL_RULES.md §5 row by its own number against the full gateA→clock1-4→overallStatus
 pipeline, so "all 27 tests pass" is checkable directly rather than inferred from the
 scenario-by-scenario tests M1-T3/T4 already wrote (those stay, unchanged).
+
+---
+
+## D-24 · TASKS.md's ✅ marks were not tracking reality; re-audited against the repo
+**18 Sep 2026, after M1-T5.**
+
+Before scoping the next task, checked git history on `TASKS.md` and found that most of its ✅
+marks — M1-T6 through M1-T8, M2-T3, M3-T3/T5/T6, M4-T3/T4/T5/T6/T7, M5-T0/T2/T3/T4, M6-T2/T3 —
+were **already present in the very first commit** (`f0a2e58`), before any of that work could
+possibly have happened. They read as aspirational placeholders left over from drafting the
+plan, not as a record of anyone actually finishing them. Confirmed by absence, not just by
+commit dates: `src/` holds only the default Vite scaffold (`App.tsx`, `main.tsx`,
+`index.css`); there is no `src/routes/`, `src/components/`, `amplify/functions/`, `samples/`,
+`scripts/`, `README.md`, or `LEARNINGS.md` anywhere in the repo, and `git log --all` /
+`git branch -a` show only Lane A's own commits on a single `main` branch — no second lane's
+work exists on any branch, stash, or remote ref.
+
+In the other direction, M0-T5 and M1-T1 through M1-T4 were genuinely finished (real files,
+real commits, tests passing) but had never been checked off — an undercount in the opposite
+direction, from the same root cause: the ✅ column was never being actively maintained as work
+landed.
+
+**Net effect: as of this morning, essentially none of the React frontend (Lane B) has been
+built**, despite M1's UI tasks (M1-T6/7/8) reading as done. That's the actual state the next
+task should be planned against, not the table as previously written. M0-T1 (Bedrock) is
+separately unchecked per D-04 — the account-verification hold was still open on the last
+retry logged there, unrelated to this audit.
+
+**Fix applied:** every checkmark in TASKS.md re-verified against a real commit or an existing
+file and corrected in both directions; a note is now pinned near the top of TASKS.md pointing
+here so a reader doesn't trust any ✅ that predates it without re-checking.
