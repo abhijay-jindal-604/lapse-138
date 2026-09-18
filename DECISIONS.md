@@ -514,3 +514,46 @@ regenerating all three fixture files from `computeClockBoard` itself (same `fact
 is the side already validated by the full 27-row LEGAL_RULES.md §5 audit in `table.test.ts`, so
 it was the fixtures that were wrong. No status, date or structural field changed in any fixture,
 only `reasoning`/`recoveryPath` wording and JSON formatting.
+
+## D-26 · M0-T4: Amplify Hosting deployed entirely via CLI, no console click-through needed
+**18 Sep 2026.**
+
+ARCHITECTURE.md and TASKS.md both assumed connecting GitHub to Amplify Hosting would need a
+manual console step. It didn't: `aws amplify create-app --repository ... --access-token
+$(gh auth token) --platform WEB` authorized the Amplify GitHub App using the existing `gh` CLI
+personal access token (scope `repo` was sufficient) and created the app (`ddkpu3vpsh6s9`,
+`ap-south-1`) with a working webhook — no browser, no OAuth redirect. `create-branch` +
+`start-job --job-type RELEASE` triggered the first build. Live URL:
+`https://main.ddkpu3vpsh6s9.amplifyapp.com`.
+
+Two things the CLI path doesn't set up automatically, both required before the deploy actually
+worked:
+
+1. **`npm ci` fails on this dependency tree** — reproduces locally, not an Amplify build
+   artifact. `aws-cdk-lib`/`@aws-amplify/*`'s nested dependencies pin some transitive packages
+   (e.g. `@opentelemetry/core`) in a way `npm install` resolves consistently but `npm ci`'s
+   strict lockfile-match check rejects, and which exact package it complains about isn't even
+   stable run-to-run. `amplify.yml`'s backend and frontend `build`/`preBuild` phases use
+   `npm install` instead of `npm ci`. `package-lock.json` was regenerated from a clean
+   `rm -rf node_modules package-lock.json && npm install` to match.
+2. **A new Amplify app has no IAM service role**, so `ampx pipeline-deploy` (which runs in the
+   backend build phase and needs to deploy the CDK/CloudFormation stack into this account) fails
+   with `BootstrapDetectionError` / `AccessDeniedException` on `ssm:GetParameter` — the
+   AWS-managed CodeBuild role Amplify uses by default can synth the CDK app but can't touch this
+   account's resources. Fixed by creating `lapse-138-amplify-backend-role` (trust policy:
+   principal `amplify.amazonaws.com`), attaching the AWS-managed
+   `AdministratorAccess-Amplify` policy, and setting it via `aws amplify update-app
+   --iam-service-role-arn`. The CDK bootstrap stack (`CDKToolkit`) already existed in
+   `ap-south-1` from an earlier `ampx sandbox` run, so this wasn't part of the fix.
+
+Also needed, unrelated to the app/branch creation itself: **Amplify Hosting's default S3+
+CloudFront behaviour 404s on client-side routes** (`/new`, `/case/act-now`, …) because there's
+no `index.html` at that path. Fixed with a custom rewrite rule (`aws amplify update-app
+--custom-rules`) sending any extensionless path to `/index.html` with a `200` status, the
+standard Amplify Gen2/Vite SPA rule. This is app-level CloudFront config, not a repo file, so it
+isn't in `amplify.yml` — a future redeploy of this same app doesn't need to redo it, but a
+brand-new Amplify app would.
+
+Verified on the deployed URL with an independent headless Chromium check (the shared Playwright
+MCP browser was locked by a concurrent session): all three M1-T6 routes plus both fixture case
+routes return `200` and render the disclaimer, nav and fixture clock boards.
