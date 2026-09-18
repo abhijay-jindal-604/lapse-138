@@ -131,9 +131,8 @@ function draftToCaseFacts(draft: Draft): CaseFacts {
   }
 }
 
-export function CaseForm({ onSubmit }: { onSubmit?: (facts: CaseFacts) => void }) {
+export function CaseForm({ onSubmit }: { onSubmit: (facts: CaseFacts) => void }) {
   const [draft, setDraft] = useState<Draft>(EMPTY_DRAFT)
-  const [captured, setCaptured] = useState<CaseFacts | null>(null)
 
   function set<K extends keyof Draft>(field: K, value: Draft[K]) {
     setDraft((prev) => ({ ...prev, [field]: value }))
@@ -141,12 +140,7 @@ export function CaseForm({ onSubmit }: { onSubmit?: (facts: CaseFacts) => void }
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    const facts = draftToCaseFacts(draft)
-    if (onSubmit) {
-      onSubmit(facts)
-    } else {
-      setCaptured(facts)
-    }
+    onSubmit(draftToCaseFacts(draft))
   }
 
   return (
@@ -497,18 +491,8 @@ export function CaseForm({ onSubmit }: { onSubmit?: (facts: CaseFacts) => void }
       </fieldset>
 
       <button type="submit" className="case-form__submit">
-        Save case facts
+        Compute clock board
       </button>
-
-      {captured && (
-        <div className="case-form__preview">
-          <p>
-            Facts captured locally — not yet saved or sent to the engine. Wiring this form to{' '}
-            <code>computeClocks</code> and persistence lands in M2-T1/M2-T2.
-          </p>
-          <pre>{JSON.stringify(captured, null, 2)}</pre>
-        </div>
-      )}
     </form>
   )
 }
