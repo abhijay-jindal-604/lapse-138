@@ -11,6 +11,7 @@ amplify_outputs.json
 *.log
 .vite/
 coverage/
+.playwright-mcp/
 
 # amplify
 amplify_outputs*

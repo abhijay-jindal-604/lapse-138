@@ -1,9 +1,18 @@
+import { Route, Routes } from 'react-router-dom'
+import { CaseDetail } from './routes/CaseDetail'
+import { Dashboard } from './routes/Dashboard'
+import { Layout } from './routes/Layout'
+import { NewCase } from './routes/NewCase'
+
 function App() {
   return (
-    <main>
-      <h1>Lapse</h1>
-      <p>The deadline clock for cheque-bounce claims.</p>
-    </main>
+    <Routes>
+      <Route element={<Layout />}>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/new" element={<NewCase />} />
+        <Route path="/case/:caseId" element={<CaseDetail />} />
+      </Route>
+    </Routes>
   )
 }
 

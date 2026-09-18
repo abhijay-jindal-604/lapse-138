@@ -64,9 +64,13 @@ note.**
 | **M1-T3** | A | ✅ | Gate A, Clock 1 (presentation validity), Clock 2 (30-day notice) | `packages/rules/src/clocks.ts` | Tests T01–T05, T15–T19, T22–T23 pass | M1-T1, M1-T2 |
 | **M1-T4** | A | ✅ | Clock 3 (15-day payment), Clock 4 (one-month filing), overall status precedence | `packages/rules/src/clocks.ts`, `status.ts` | Tests T06–T14, T20–T21 pass | M1-T3 |
 | **M1-T5** | A | ✅ | Complete the test table, the reasoning chain, the recovery-path field, the advisory receipt-date range, and the synopsis-assembly function — **all pure `packages/rules` logic, no AWS dependency, so all of it belongs here rather than split across later milestones** | `packages/rules/test/*.test.ts` | **All 27 tests in LEGAL_RULES.md §5 pass** (T01–T24 core logic, T25 advisory range, T26 recovery path, T27 synopsis assembly). Every returned status carries a non-empty `reasoning` array where every step has a `source`. | M1-T4 |
-| **M1-T6** | B | | App shell: header, permanent disclaimer banner, three routes (dashboard, new case, case detail) | `src/App.tsx`, `src/routes/`, `src/styles/` | All three routes render on the **deployed URL** with visible navigation and the disclaimer text from LEGAL_RULES.md §7 | M0-T4 |
+| **M1-T6** | B | ✅¹ | App shell: header, permanent disclaimer banner, three routes (dashboard, new case, case detail) | `src/App.tsx`, `src/routes/`, `src/styles/` | All three routes render on the **deployed URL** with visible navigation and the disclaimer text from LEGAL_RULES.md §7 | M0-T4 |
 | **M1-T7** | B | | Case entry form covering every `CaseFacts` field | `src/components/CaseForm.tsx` | Every field in LEGAL_RULES.md §2 is present. The six human-only fields are visually distinct and separately grouped, not buried at the bottom. The three affidavit-boundary fields (`accusedEmail`, `accusedMobile`, `accusedMessagingDetails`) are grouped separately again, with the affidavit warning from LEGAL_RULES.md §7 shown inline, never pre-filled from extraction. | M1-T2 |
 | **M1-T8** | B | | Clock board + reasoning chain components, rendered from the fixture JSON | `src/components/ClockBoard.tsx`, `ReasoningChain.tsx` | All three fixtures render correctly with distinct visual treatment per status. Each reasoning step shows its rule, source, trigger date, counting rule and result date. | M1-T2 |
+
+¹ M1-T6 verified against `npm run dev` locally (tsc/oxlint clean, all three routes checked in a
+browser) since M0-T4 (Amplify Hosting deploy) has not landed yet. Re-verify against the deployed
+URL once M0-T4 is done — the acceptance criterion is written against that URL, not localhost.
 
 **M1 exit:** `npm test` is green on all 27 cases, and the UI renders a clock board from fixtures.
 
