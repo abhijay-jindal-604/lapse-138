@@ -81,7 +81,7 @@ browser check, not just localhost — all three routes render with nav and the d
 | ID | Lane | ∥ | Goal | Touches | Accept when | Needs |
 |---|---|---|---|---|---|---|
 | **M2-T1** | B | ✅² | Wire the form to the real engine, via `computeClockBoard(facts, today, caseId)` (packages/rules, published — see DECISIONS.md D-25) — do not re-implement the gate/clock sequencing in `src/` | `src/routes/NewCase.tsx` | Typing the T02 scenario into the form produces exactly the T02 expected output on the deployed URL | M1-T5, M1-T7, M1-T8 |
-| **M2-T2** | A | | Persist and reload a case: facts, result snapshot, `computedAt` | `amplify/data/resource.ts`, `src/lib/cases.ts` | A saved case survives a page reload and reopens with the identical clock board | M0-T5, M2-T1 |
+| **M2-T2** | A | ✅⁴ | Persist and reload a case: facts, result snapshot, `computedAt` | `amplify/data/resource.ts`, `src/lib/cases.ts` | A saved case survives a page reload and reopens with the identical clock board | M0-T5, M2-T1 |
 | **M2-T3** | B | ✅³ | Reasoning chain interaction: collapsed by default, expandable, printable | `src/components/ReasoningChain.tsx` | Every clock's reasoning expands and collapses; the page prints legibly | M1-T8 |
 | **M2-T4** | A | | Verify three hand-entered cases against the live deployment | — | T02, T10 and T13 entered by hand on the deployed URL give the expected statuses. Screenshots in chat. | M2-T1, M2-T2 |
 
@@ -103,6 +103,21 @@ and forces `open` for the duration of printing, restoring whatever state — col
 manual expansion — it was in beforehand. Verified by dispatching those events directly: all
 reasoning steps render with real (non-zero) height while "printing," and the pre-print open/
 closed state is exactly restored after.
+
+⁴ M2-T2 verified 18 Sep on the deployed URL: entering the T02 scenario at `/new` saved a case via
+`src/lib/cases.ts` and redirected to `/case/<uuid>`; a fresh navigation (not client routing) to
+that URL reopened the identical clock board (Act now, notice deadline 2026-09-19). Hit a real bug
+en route — the first attempt failed server-side with `"Variable 'facts' has an invalid value."`
+AppSync's `AWSJSON` scalar only accepts a raw object literal inline in query text; as a GraphQL
+*variable* it requires a JSON-encoded string, and `@aws-amplify/data-schema`'s generated client
+does not stringify `a.json()` fields for you (confirmed by reading its `normalizeMutationInput` —
+no `JSON.stringify`/`parse` anywhere in that path). Fixed by stringifying `facts`/`result` on
+write and parsing `result` back on read. Also had to enable `strictNullChecks` in
+`tsconfig.app.json`: without it, TypeScript's inference for the generated Data client's
+`create()`/`get()` argument types silently collapsed into a bogus `{ [x: string]: string[] }`
+shape instead of erroring — bisected against a minimal repro schema to confirm the cause before
+changing the config. `tsc -b`, `npm run build` and all 110 rules tests stay green. The M1 fixture
+route (`/case/act-now`) still renders correctly — no regression.
 
 **M2 exit: if everything after this point failed, we would still have something to show.**
 Tag this commit `m2-demoable`.
