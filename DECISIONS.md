@@ -93,6 +93,20 @@ Both model IDs are **global cross-region inference profiles** — `global.anthro
 plain model ID will not work from `ap-south-1`, and that is a five-minute confusion waiting
 to happen at 2 a.m.
 
+**M0-T1 note, 2026-09-18:** brand-new AWS account (created same day). `Converse` initially
+failed with `AccessDeniedException: Your account is currently being verified` (an account-wide
+new-account fraud-prevention hold, not region- or model-specific — `s3 ls`, `budgets
+describe-budgets` and `bedrock list-foundation-models` all worked fine throughout). After
+that cleared, it then failed with `ValidationException: Operation not allowed` — Anthropic's
+one-time "submit use case details" form (`PutUseCaseForModelAccess`), which itself returned
+`Your account is not authorized to perform this action` when submitted, i.e. blocked by the
+same underlying account-verification hold, not a form problem. This is **not** the
+region/model-access failure mode this note originally anticipated, so the `us-east-1`
+fallback would not help — the block is account-wide, not per-region. Decision: wait for AWS's
+own account verification (their message says normally &lt;2 hours) rather than switch region,
+and proceed on all non-Bedrock M0/M1 work in the meantime. If still blocked well beyond a
+couple of hours, open an AWS Support "Account and billing" case (free on Basic support).
+
 ---
 
 ## D-05 · No Textract
