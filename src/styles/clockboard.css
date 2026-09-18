@@ -64,7 +64,6 @@
 
 .clock-card {
   border: 1px solid var(--border);
-  border-left-width: 5px;
   border-radius: 8px;
   padding: 16px 18px;
   display: flex;
@@ -83,6 +82,19 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
+  color: var(--clock-status-color, var(--text));
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.clock-card__status::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--clock-status-color, var(--text));
+  flex-shrink: 0;
 }
 
 .clock-card__dates {
@@ -99,29 +111,30 @@
   background: rgba(154, 124, 10, 0.12);
 }
 
-/* Clock-level status colours — borrow the same palette as the overall badge. */
+/* Clock-level status colours — borrow the same palette as the overall badge.
+   Carried on a status dot + label colour (--clock-status-color), not a side-tab border. */
 .clock-card[data-clock-status='PASS'],
 .clock-card[data-clock-status='RESOLVED'] {
-  border-left-color: #1e7a4a;
+  --clock-status-color: #1e7a4a;
 }
 .clock-card[data-clock-status='live'],
 .clock-card[data-clock-status='ACT_NOW'],
 .clock-card[data-clock-status='not_yet_open'] {
-  border-left-color: #b45f06;
+  --clock-status-color: #b45f06;
 }
 .clock-card[data-clock-status='DEADLINE_MISSED'],
 .clock-card[data-clock-status='PREMATURE'] {
-  border-left-color: #a52121;
+  --clock-status-color: #a52121;
 }
 .clock-card[data-clock-status='NEEDS_REVIEW'] {
-  border-left-color: #9a7c0a;
+  --clock-status-color: #9a7c0a;
 }
 .clock-card[data-clock-status='NOT_A_138_CASE'] {
-  border-left-color: #55535c;
+  --clock-status-color: #55535c;
 }
 .clock-card[data-clock-status='PROCEED'],
 .clock-card[data-clock-status='PROCEED_WITH_NOTE'] {
-  border-left-color: #1e7a4a;
+  --clock-status-color: #1e7a4a;
 }
 
 .date-estimate--advisory {
