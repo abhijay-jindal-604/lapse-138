@@ -63,9 +63,9 @@
         "rule": "The cheque must be presented within its period of validity",
         "source": "NI Act §138 proviso (a); RBI directive effective 01 Apr 2012 (validity reduced from 6 months to 3)",
         "triggerDate": "2026-07-01",
-        "countingRule": "Exclude the trigger day; add 3 calendar months, clamped to month-end",
+        "countingRule": "Exclude the trigger day; add 3 calendar months, clamped to month-end. The statute allows 6 months or the period of validity, whichever is earlier — since 01 Apr 2012 the RBI has fixed validity at 3 months, so 3 months governs over the statutory 6.",
         "resultDate": "2026-10-01",
-        "plainEnglish": "The cheque is dated 1 Jul 2026 and stays valid for presentation until 1 Oct 2026. It was presented on 1 Aug 2026, within that window."
+        "plainEnglish": "The cheque is dated 2026-07-01 and stays valid for presentation until 2026-10-01. It was presented on 2026-08-01, within that window."
       }
     ]
   },
@@ -81,24 +81,30 @@
         "triggerDate": "2026-08-05",
         "countingRule": "Exclude the trigger day; deadline = trigger + 30 days",
         "resultDate": "2026-09-04",
-        "plainEnglish": "You learned of the dishonour on 5 Aug 2026 and had until 4 Sep 2026 to send notice. It was sent on 25 Aug 2026, in time."
+        "plainEnglish": "You learned of the dishonour on 2026-08-05 and had until 2026-09-04 to send notice. It was sent on 2026-08-25, in time."
       }
     ]
   },
   "clock3": {
     "clock": "payment_window",
     "status": "PASS",
-    "paymentWindowEnds": { "basis": "computed", "date": "2026-09-12" },
-    "causeOfActionDate": { "basis": "computed", "date": "2026-09-13" },
+    "paymentWindowEnds": {
+      "basis": "computed",
+      "date": "2026-09-12"
+    },
+    "causeOfActionDate": {
+      "basis": "computed",
+      "date": "2026-09-13"
+    },
     "deemedService": false,
     "reasoning": [
       {
-        "rule": "The drawer has 15 days from receiving the notice to pay before an offence is complete",
-        "source": "NI Act §138 proviso (c)",
+        "rule": "The drawer has 15 days from receipt (or deemed service) of the notice to pay before the offence is complete",
+        "source": "NI Act §138 proviso (c); day-counting per §9 General Clauses Act 1897, applied in Econ Antri Ltd v. Rom Industries Ltd (2014) 11 SCC 769",
         "triggerDate": "2026-08-28",
-        "countingRule": "Exclude the trigger day; window ends at trigger + 15 days; the offence is complete the day after",
+        "countingRule": "Exclude the trigger day; payment window ends = trigger + 15 days; the offence is complete the day after",
         "resultDate": "2026-09-12",
-        "plainEnglish": "Notice was received on 28 Aug 2026. The drawer had until 12 Sep 2026 to pay. No payment was made, so the offence became complete on 13 Sep 2026."
+        "plainEnglish": "The notice was received on 2026-08-28. The payment window closed on 2026-09-12 without full payment — the offence under §138 is complete as of 2026-09-13."
       }
     ]
   },
@@ -110,12 +116,12 @@
     "daysRemaining": 26,
     "reasoning": [
       {
-        "rule": "A complaint must be filed within one month of the cause of action, and not before",
-        "source": "NI Act §142(1)(b)",
+        "rule": "A §138 complaint must be filed within one month of the cause of action, condonable on sufficient cause",
+        "source": "NI Act §142(1)(b) + proviso",
         "triggerDate": "2026-09-13",
-        "countingRule": "Exclude the trigger day; deadline = same day-of-month next calendar month, clamped to month-end",
+        "countingRule": "Exclude the trigger day (cause of action date); filing deadline = trigger + 1 calendar month, clamped to month-end",
         "resultDate": "2026-10-13",
-        "plainEnglish": "The offence became complete on 13 Sep 2026, opening the filing window. The complaint must be filed by 13 Oct 2026 — 26 days from today — and not before 13 Sep 2026."
+        "plainEnglish": "The cause of action accrued on 2026-09-13. You have until 2026-10-13 — 26 days from today — to file the complaint."
       }
     ]
   }

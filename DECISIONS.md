@@ -473,3 +473,44 @@ retry logged there, unrelated to this audit.
 **Fix applied:** every checkmark in TASKS.md re-verified against a real commit or an existing
 file and corrected in both directions; a note is now pinned near the top of TASKS.md pointing
 here so a reader doesn't trust any ✅ that predates it without re-checking.
+
+---
+
+## D-25 · `computeClockBoard` added as the orchestrator ARCHITECTURE.md already named, reversing D-23 point 3
+**18 Sep 2026, ahead of M2-T1.**
+
+D-23 concluded no `computeClockBoard`-style orchestrator was needed, because `computeSynopsis`
+only ever needed `(facts, clock3)` and building one then would have been scope nothing in
+M1-T5 asked for. That reasoning held for the synopsis path specifically, but ARCHITECTURE.md's
+own data-flow diagram (§2, step 8) already names `computeClocks(facts, todayIST) → ClockBoard`
+as the thing the browser calls once a human confirms facts — M2-T1 (wiring the form to the
+engine) cannot satisfy that without either calling this orchestrator or reimplementing the
+gate/clock sequencing itself in `src/`, which would violate the "UI contains no deadline
+arithmetic of its own" boundary (ARCHITECTURE.md §1) and duplicate legal-sequencing logic
+LEGAL_RULES.md §3 keeps in one place. `computeClockBoard(facts, today, caseId)` is now added to
+`packages/rules/src/board.ts`, exported from the package, still zero-dependency and zero-I/O.
+
+**Sequencing, reverse-engineered from the fixtures and table.test.ts's null arguments to
+`computeOverallStatus`, not newly invented:** gateA always; if gateA is `NOT_A_138_CASE`
+(T19), nothing further is computed. Otherwise clock1 runs; if clock1 is itself
+`NOT_A_138_CASE` (T15, stale at presentation), clock2 stays null. If gateA is `NEEDS_REVIEW`
+because the dishonour reason is unreviewed rather than because the debt is merely 'unsure'
+(T17's `computeOverallStatus(..., clock1, null, null, null)` call is the tell), the chain also
+stops after clock1 — the 'unsure'-debt branch of Gate A is the one case that keeps going
+(needs-review.json runs all the way to clock4), so the orchestrator has to check
+`facts.legallyEnforceableDebt === 'unsure'` directly rather than branching on `gateA.status`
+alone, since both NEEDS_REVIEW paths report the same status. clock2 always runs otherwise.
+clock3 runs only when `clock2.status === 'PASS'`. clock4 runs only when
+`clock3.status === 'PASS'` (never off T25's advisory NEEDS_REVIEW variant).
+
+**Also surfaced in the process, and fixed:** the three hand-written fixture JSONs
+(`packages/rules/fixtures/*.json`, from M1-T2) had drifted from `clocks.ts`'s actual reasoning
+prose — wording, `source` and `countingRule` text were revised during M1-T3/T4/T5, but
+`fixtures.test.ts` only ever asserted structural shape (non-empty `reasoning`, a `recoveryPath`
+where required), never exact text, so the drift shipped unnoticed. Writing `board.test.ts`'s
+byte-identical-output assertions against the fixtures caught this immediately. Fixed by
+regenerating all three fixture files from `computeClockBoard` itself (same `facts`/`today`/
+`caseId` each already had) rather than editing `clocks.ts` to match the stale prose — `clocks.ts`
+is the side already validated by the full 27-row LEGAL_RULES.md §5 audit in `table.test.ts`, so
+it was the fixtures that were wrong. No status, date or structural field changed in any fixture,
+only `reasoning`/`recoveryPath` wording and JSON formatting.

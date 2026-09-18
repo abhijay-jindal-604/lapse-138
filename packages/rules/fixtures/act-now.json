@@ -36,7 +36,7 @@
     "status": "PROCEED",
     "reasoning": [
       {
-        "rule": "A §138 offence requires a legally enforceable debt, and the dishonour reason must fall within the statute's own words or settled case law",
+        "rule": "The dishonour reason must fall within §138's own words or settled case law",
         "source": "NI Act §138 Explanation",
         "triggerDate": null,
         "countingRule": "n/a",
@@ -57,7 +57,7 @@
         "triggerDate": "2026-07-01",
         "countingRule": "Exclude the trigger day; add 3 calendar months, clamped to month-end. The statute allows 6 months or the period of validity, whichever is earlier — since 01 Apr 2012 the RBI has fixed validity at 3 months, so 3 months governs over the statutory 6.",
         "resultDate": "2026-10-01",
-        "plainEnglish": "The cheque is dated 1 Jul 2026 and stays valid for presentation until 1 Oct 2026 (not 1 Jan 2027 — RBI shortened validity to 3 months in 2012). It was presented on 15 Aug 2026, well within that window."
+        "plainEnglish": "The cheque is dated 2026-07-01 and stays valid for presentation until 2026-10-01. It was presented on 2026-08-15, within that window."
       }
     ]
   },
@@ -74,7 +74,7 @@
         "triggerDate": "2026-08-20",
         "countingRule": "Exclude the trigger day; deadline = trigger + 30 days",
         "resultDate": "2026-09-19",
-        "plainEnglish": "You learned of the dishonour (from the bank, not just the memo) on 20 Aug 2026. You have until 19 Sep 2026 — 2 days from today — to send the demand notice."
+        "plainEnglish": "You learned of the dishonour on 2026-08-20. You have until 2026-09-19 — 2 days from today — to send the demand notice."
       }
     ]
   },

@@ -36,7 +36,7 @@
     "status": "PROCEED",
     "reasoning": [
       {
-        "rule": "A §138 offence requires a legally enforceable debt, and the dishonour reason must fall within the statute's own words or settled case law",
+        "rule": "The dishonour reason must fall within §138's own words or settled case law",
         "source": "NI Act §138 Explanation",
         "triggerDate": null,
         "countingRule": "n/a",
@@ -55,9 +55,9 @@
         "rule": "The cheque must be presented within its period of validity",
         "source": "NI Act §138 proviso (a); RBI directive effective 01 Apr 2012 (validity reduced from 6 months to 3)",
         "triggerDate": "2026-07-20",
-        "countingRule": "Exclude the trigger day; add 3 calendar months, clamped to month-end",
+        "countingRule": "Exclude the trigger day; add 3 calendar months, clamped to month-end. The statute allows 6 months or the period of validity, whichever is earlier — since 01 Apr 2012 the RBI has fixed validity at 3 months, so 3 months governs over the statutory 6.",
         "resultDate": "2026-10-20",
-        "plainEnglish": "The cheque is dated 20 Jul 2026 and stays valid for presentation until 20 Oct 2026. It was presented on 22 Jul 2026, well within that window."
+        "plainEnglish": "The cheque is dated 2026-07-20 and stays valid for presentation until 2026-10-20. It was presented on 2026-07-22, within that window."
       }
     ]
   },
@@ -70,7 +70,7 @@
       "kind": "RE_PRESENT_CHEQUE",
       "deadline": "2026-10-20",
       "source": "MSR Leathers v. S. Palaniappan (2013) 1 SCC 177",
-      "plainEnglish": "The 30-day notice window closed on 24 Aug 2026 without a notice being sent, but the cheque itself is still valid for presentation until 20 Oct 2026. You can re-present it any time before then. Re-presentation creates a fresh dishonour and restarts the entire chain — fresh presentation, fresh 30-day notice window, fresh notice, fresh 15-day payment wait, fresh 1-month filing window — not just a new notice deadline on the old one."
+      "plainEnglish": "The 30-day notice window closed without a valid notice being sent, but the cheque itself is still valid for presentation until 2026-10-20. You can re-present it any time before then. Re-presentation creates a fresh dishonour and restarts the entire chain — fresh presentation, fresh 30-day notice window, fresh notice, fresh 15-day payment wait, fresh 1-month filing window — not just a new notice deadline on the old one."
     },
     "reasoning": [
       {
@@ -79,7 +79,7 @@
         "triggerDate": "2026-07-25",
         "countingRule": "Exclude the trigger day; deadline = trigger + 30 days",
         "resultDate": "2026-08-24",
-        "plainEnglish": "You learned of the dishonour on 25 Jul 2026. The notice needed to be sent by 24 Aug 2026. Today is 17 Sep 2026 and no notice has been sent — this window is closed. Condonation does not apply here; that only covers a late complaint (Clock 4), not a late notice."
+        "plainEnglish": "You learned of the dishonour on 2026-07-25. The notice needed to be sent by 2026-08-24. Today is 2026-09-17 and no notice has been sent — this window is closed. Condonation does not apply here; that only covers a late complaint (Clock 4), not a late notice."
       }
     ]
   },
