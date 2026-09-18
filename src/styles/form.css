@@ -119,6 +119,14 @@
   }
 }
 
+.case-form__error {
+  padding: 10px 14px;
+  border-radius: 6px;
+  border: 1px solid #a52121;
+  background: #fdf2f1;
+  color: #a52121;
+}
+
 .case-form__submit {
   align-self: flex-start;
   padding: 10px 20px;

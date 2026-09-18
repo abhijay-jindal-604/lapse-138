@@ -1,32 +1,30 @@
 import { useState } from 'react'
-import type { CaseFacts, ClockBoard as ClockBoardData } from '@lapse/rules'
+import { useNavigate } from 'react-router-dom'
+import type { CaseFacts } from '@lapse/rules'
 import { computeClockBoard, todayInIST } from '@lapse/rules'
 import { CaseForm } from '../components/CaseForm'
-import { ClockBoard } from '../components/ClockBoard'
+import { saveCase } from '../lib/cases'
 
 export function NewCase() {
-  const [board, setBoard] = useState<ClockBoardData | null>(null)
+  const navigate = useNavigate()
+  const [error, setError] = useState<string | null>(null)
 
-  function handleSubmit(facts: CaseFacts) {
+  async function handleSubmit(facts: CaseFacts) {
     const caseId = crypto.randomUUID()
-    setBoard(computeClockBoard(facts, todayInIST(), caseId))
-  }
-
-  if (board) {
-    return (
-      <section>
-        <h1>Case {board.facts.chequeNumber}</h1>
-        <ClockBoard board={board} />
-        <button type="button" className="case-form__submit" onClick={() => setBoard(null)}>
-          Start another case
-        </button>
-      </section>
-    )
+    const board = computeClockBoard(facts, todayInIST(), caseId)
+    setError(null)
+    try {
+      const savedId = await saveCase(board)
+      navigate(`/case/${savedId}`)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save case')
+    }
   }
 
   return (
     <section>
       <h1>New case</h1>
+      {error && <p className="case-form__error">{error}</p>}
       <CaseForm onSubmit={handleSubmit} />
     </section>
   )
