@@ -82,7 +82,7 @@ browser check, not just localhost — all three routes render with nav and the d
 |---|---|---|---|---|---|---|
 | **M2-T1** | B | ✅² | Wire the form to the real engine, via `computeClockBoard(facts, today, caseId)` (packages/rules, published — see DECISIONS.md D-25) — do not re-implement the gate/clock sequencing in `src/` | `src/routes/NewCase.tsx` | Typing the T02 scenario into the form produces exactly the T02 expected output on the deployed URL | M1-T5, M1-T7, M1-T8 |
 | **M2-T2** | A | | Persist and reload a case: facts, result snapshot, `computedAt` | `amplify/data/resource.ts`, `src/lib/cases.ts` | A saved case survives a page reload and reopens with the identical clock board | M0-T5, M2-T1 |
-| **M2-T3** | B | | Reasoning chain interaction: collapsed by default, expandable, printable | `src/components/ReasoningChain.tsx` | Every clock's reasoning expands and collapses; the page prints legibly | M1-T8 |
+| **M2-T3** | B | ✅³ | Reasoning chain interaction: collapsed by default, expandable, printable | `src/components/ReasoningChain.tsx` | Every clock's reasoning expands and collapses; the page prints legibly | M1-T8 |
 | **M2-T4** | A | | Verify three hand-entered cases against the live deployment | — | T02, T10 and T13 entered by hand on the deployed URL give the expected statuses. Screenshots in chat. | M2-T1, M2-T2 |
 
 ² M2-T1 verified 18 Sep on the deployed URL: entering T02's facts (cheque #004521, memo info
@@ -92,6 +92,17 @@ not a bug — `NewCase.tsx` correctly calls `todayInIST()` for the live clock, a
 calendar date has advanced one real day past T02's assumed 2026-09-17 "today" since the test
 table was written. The deadline date and status, the two fields the acceptance criterion is
 actually about, match exactly.
+
+³ M2-T3 uses native `<details>`/`<summary>`, collapsed by default, each clock's chain toggling
+independently — verified in a headless browser (all closed by default, one expands without
+affecting the others). "Prints legibly" needed a non-obvious fix: a closed `<details>`'s content
+can't be forced visible with a CSS `display` override on the content itself (confirmed by
+inspecting the rendered box — the `<details>` element collapses to summary-height regardless of
+the child's own `display` value), so `ReasoningChain.tsx` listens for `beforeprint`/`afterprint`
+and forces `open` for the duration of printing, restoring whatever state — collapsed or a reader's
+manual expansion — it was in beforehand. Verified by dispatching those events directly: all
+reasoning steps render with real (non-zero) height while "printing," and the pre-print open/
+closed state is exactly restored after.
 
 **M2 exit: if everything after this point failed, we would still have something to show.**
 Tag this commit `m2-demoable`.

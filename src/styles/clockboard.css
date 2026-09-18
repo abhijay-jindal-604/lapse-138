@@ -178,10 +178,36 @@
   font-style: italic;
 }
 
-/* Reasoning chain — shared by every clock card, via ReasoningChain.tsx */
+/* Reasoning chain — shared by every clock card, via ReasoningChain.tsx.
+   Collapsed by default (no `open` attribute); each clock's <details> toggles
+   independently. */
+.reasoning-chain-details {
+  margin-top: 4px;
+}
+
+.reasoning-chain-summary {
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-h);
+  list-style: none;
+}
+
+.reasoning-chain-summary::-webkit-details-marker {
+  display: none;
+}
+
+.reasoning-chain-summary::before {
+  content: '▸ ';
+}
+
+.reasoning-chain-details[open] .reasoning-chain-summary::before {
+  content: '▾ ';
+}
+
 .reasoning-chain {
   list-style: none;
-  margin: 4px 0 0;
+  margin: 10px 0 0;
   padding: 0;
   display: flex;
   flex-direction: column;
@@ -236,5 +262,14 @@
 @media (max-width: 640px) {
   .reasoning-step__meta {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Printing every reasoning step regardless of on-screen collapsed state is
+   handled in ReasoningChain.tsx (forcing `open` on beforeprint) — a closed
+   <details>'s content can't be made to print via a display override alone. */
+@media print {
+  .reasoning-chain-summary {
+    display: none;
   }
 }
