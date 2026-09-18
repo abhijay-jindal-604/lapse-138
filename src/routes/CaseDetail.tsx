@@ -5,6 +5,7 @@ import actNow from '../../packages/rules/fixtures/act-now.json'
 import deadlineMissed from '../../packages/rules/fixtures/deadline-missed.json'
 import needsReview from '../../packages/rules/fixtures/needs-review.json'
 import { ClockBoard } from '../components/ClockBoard'
+import { DateTravel } from '../components/DateTravel'
 import { loadCase } from '../lib/cases'
 
 // The dashboard still links to these three fixture IDs (M1) alongside real, persisted
@@ -52,7 +53,7 @@ export function CaseDetail() {
   return (
     <section>
       <h1>Case {board.facts.chequeNumber}</h1>
-      <ClockBoard board={board} />
+      {fixture ? <ClockBoard board={board} /> : <DateTravel board={board} />}
       <p className="case-detail__links">
         <Link to={`/case/${caseId}/synopsis`}>View draft synopsis</Link>
       </p>

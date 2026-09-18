@@ -1,0 +1,75 @@
+.date-travel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 720px;
+}
+
+.date-travel__controls {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.date-travel__question {
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.date-travel__slider {
+  width: 100%;
+}
+
+.date-travel__range-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  font-family: var(--mono);
+  color: var(--text);
+}
+
+.date-travel__reset {
+  align-self: flex-start;
+  margin-top: 4px;
+  padding: 6px 12px;
+  font-size: 14px;
+  font-family: var(--sans);
+  color: var(--text-h);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.date-travel__reset:hover:not(:disabled) {
+  border-color: var(--text-h);
+}
+
+.date-travel__reset:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.date-travel__board--flash {
+  animation: date-travel-recompute 400ms ease-out;
+}
+
+@keyframes date-travel-recompute {
+  0% {
+    opacity: 0.4;
+    transform: translateY(2px) scale(0.995);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .date-travel__board--flash {
+    animation: none;
+  }
+}
