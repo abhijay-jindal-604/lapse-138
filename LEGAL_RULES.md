@@ -19,7 +19,7 @@ These are easy to get wrong silently and expensive to change later. Fix them on 
 | **Date type** | Every date is a **calendar date**, stored and passed as an ISO `YYYY-MM-DD` string. Never a JS `Date`, never a timestamp, never a UTC instant. A cheque does not bounce at a time of day. |
 | **Timezone** | All dates are Indian civil dates (Asia/Kolkata). The only place a timezone appears is the single function that answers "what is today's date in IST", at the edge of the system. |
 | **`today` is an input** | `computeClocks(facts, today)` takes today as a parameter. The engine never calls `new Date()`. Non-negotiable: it is what makes every test in §5 deterministic. |
-| **Counting "within N days of X"** | Exclude the trigger day X. Deadline date = X + N days. Acting **on** the deadline date is in time; the day after is late. Source: §9 General Clauses Act 1897, applied to §138 by *Econ Antri Ltd v. Rom Industries Ltd* (2013) 15 SCC 231. |
+| **Counting "within N days of X"** | Exclude the trigger day X. Deadline date = X + N days. Acting **on** the deadline date is in time; the day after is late. Source: §9 General Clauses Act 1897, applied to §138 by *Econ Antri Ltd v. Rom Industries Ltd* (2014) 11 SCC 769. |
 | **Counting "within one month of X"** | Exclude X. Deadline = the same day-of-month in the following calendar month. If that day does not exist in that month, the deadline is the **last day of that month** (30 Jan + 1 month → 28 Feb, or 29 Feb in a leap year). Source: same as above. |
 | **"3 months" for cheque validity** | Same calendar-month arithmetic with the same end-of-month clamping. |
 | **Unknown inputs** | A missing date is `null` and produces `NEEDS_REVIEW` for the clock that depends on it. The engine **never** substitutes a guess. The one exception is documented in Clock 2 and must be shown on screen as an assumption. |
@@ -35,18 +35,18 @@ off here before any rule is coded.**
 
 | ✔ | Source | Used for |
 |---|---|---|
-| ☐ | NI Act §138, main limb + provisos (a), (b), (c) + Explanation | Clocks 1–3, offence definition, punishment |
-| ☐ | NI Act §142(1)(a), (1)(b) + proviso, (1)(c) | Clock 4, condonation, court level |
-| ☐ | NI Act §142(2)(a), (2)(b) + Explanation | Jurisdiction output |
-| ☐ | NI Act §143A | Interim compensation output (discretionary) |
-| ☐ | *Econ Antri Ltd v. Rom Industries Ltd* (2013) 15 SCC 231 | Day-counting rule; exclusion of trigger day |
-| ☐ | *Yogendra Pratap Singh v. Savitri Pandey* (2015) 11 SCC 539 | Premature-complaint bar |
-| ☐ | *MSR Leathers v. S. Palaniappan* (2013) 1 SCC 177 | Fresh cause of action on re-presentation |
-| ☐ | *C.C. Alavi Haji v. Palapetty Muhammed* (2007) 6 SCC 555 | Deemed service of notice |
-| ☐ | *Rakesh Ranjan Shrivastava v. State of Jharkhand* 2024 INSC 205 | §143A is discretionary, not mandatory |
-| ☐ | RBI directive effective 01 Apr 2012 | Cheque validity reduced from 6 months to 3 |
-| ☐ | *Sanjabij Tari v. Kishore S. Borcar* 2025 INSC 1158 (25 Sep 2025) | Structured synopsis mandate (§7A); procedural guidelines effective 1 Nov 2025 |
-| ☐ | §27 General Clauses Act 1897 | Presumption of service by post "in the ordinary course" — basis for the advisory receipt-date range in Clock 3 |
+| ☑ | NI Act §138, main limb + provisos (a), (b), (c) + Explanation | Clocks 1–3, offence definition, punishment |
+| ☑ | NI Act §142(1)(a), (1)(b) + proviso, (1)(c) | Clock 4, condonation, court level |
+| ☑ | NI Act §142(2)(a), (2)(b) + Explanation | Jurisdiction output |
+| ☑ | NI Act §143A | Interim compensation output (discretionary) |
+| ☑ | *Econ Antri Ltd v. Rom Industries Ltd* (2014) 11 SCC 769 (corrected from (2013) 15 SCC 231 during M1-T0 verification; substance unchanged) | Day-counting rule; exclusion of trigger day |
+| ☑ | *Yogendra Pratap Singh v. Savitri Pandey* (2014) 10 SCC 713 (corrected from (2015) 11 SCC 539 during M1-T0 verification) | Premature-complaint bar |
+| ☑ | *MSR Leathers v. S. Palaniappan* (2013) 1 SCC 177 | Fresh cause of action on re-presentation |
+| ☑ | *C.C. Alavi Haji v. Palapetty Muhammed* (2007) 6 SCC 555 | Deemed service of notice |
+| ☑ | *Rakesh Ranjan Shrivastava v. State of Jharkhand* 2024 INSC 205 | §143A is discretionary, not mandatory |
+| ☑ | RBI directive effective 01 Apr 2012 | Cheque validity reduced from 6 months to 3 |
+| ☑ | *Sanjabij Tari v. Kishore S. Borcar* 2025 INSC 1158 (25 Sep 2025) | Structured synopsis mandate (procedural mandate, not a statutory section); procedural guidelines effective 1 Nov 2025 |
+| ☑ | §27 General Clauses Act 1897 | Presumption of service by post "in the ordinary course" — basis for the advisory receipt-date range in Clock 3 |
 
 ---
 
@@ -236,8 +236,17 @@ telling them only that they are dead is close to useless.
     15 days expire cannot be taken cognizance of, **and this defect cannot be cured by
     waiting** — condonation is not an option here at all, because condonation extends a
     filing deadline, and prematurity is the opposite problem. Source: *Yogendra Pratap
-    Singh*. Show the consequence in plain words: this complaint must be withdrawn and a
-    fresh one filed within the remaining window, on a fresh cause of action.
+    Singh*. Show the consequence in plain words: this complaint must be withdrawn, and a
+    fresh complaint can be filed **on the same cause of action**, within whatever time
+    remains of the original one-month §142(1)(b) window (`filingDeadline`, unchanged) —
+    there is no fresh window and no fresh cause of action here, unlike Clock 2's
+    re-presentation route (*MSR Leathers*), which genuinely restarts the whole chain. In
+    practice this remaining time is frequently already exhausted by the time someone
+    discovers the prematurity defect, since the defect is usually only noticed once the
+    case has been pending for a while — flag this for the recoveryPath implementation
+    (M1-T4/T5): a bare "you can still refile" message would be materially misleading in the
+    common case where `today > filingDeadline` by the time the defect surfaces, and the
+    recoveryPath must distinguish that from the case where time genuinely remains.
   - `filingWindowOpens <= complaintFiledDate <= filingDeadline` → **filed in time**.
   - `complaintFiledDate > filingDeadline` → **DEADLINE_MISSED**, condonation path below.
 - If not filed:
