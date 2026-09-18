@@ -34,6 +34,29 @@ export async function loadCase(caseId: string): Promise<ClockBoard | null> {
   return JSON.parse(data.result as unknown as string) as ClockBoard
 }
 
+export type CaseSummary = {
+  id: string
+  title: string
+  board: ClockBoard
+}
+
+// M4-T3: the dashboard needs every saved case's full board (to derive the next
+// deadline), not just the summary columns — result already carries it, so no
+// second round trip per case.
+export async function listCases(): Promise<CaseSummary[]> {
+  const { data, errors } = await client.models.Case.list()
+  if (errors) {
+    throw new Error(errors[0]?.message ?? 'Failed to list cases')
+  }
+  return data
+    .filter((c): c is typeof c & { result: string } => c.result != null)
+    .map((c) => ({
+      id: c.id,
+      title: c.title,
+      board: JSON.parse(c.result as unknown as string) as ClockBoard,
+    }))
+}
+
 export async function fetchSynopsis(caseId: string): Promise<string> {
   const { data, errors } = await client.queries.synopsisForCase({ caseId })
   if (errors || data == null) {
