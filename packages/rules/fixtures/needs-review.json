@@ -1,0 +1,122 @@
+{
+  "caseId": "fixture-needs-review",
+  "computedAt": "2026-09-17",
+  "today": "2026-09-17",
+  "facts": {
+    "payeeName": "Anand Traders",
+    "payeeAddress": "14 MG Road, Pune 411001",
+    "drawerName": "Suresh Kumar",
+    "drawerAddress": "22 Church Street, Pune 411002",
+    "chequeNumber": "004530",
+    "chequeDate": "2026-07-01",
+    "amountInPaise": 75000000,
+    "drawerBankName": "Sunrise Cooperative Bank",
+    "drawerBankBranch": "Church Street Branch",
+    "payeeBankBranch": "MG Road Branch",
+    "presentationDate": "2026-08-01",
+    "dishonourMemoDate": "2026-08-03",
+    "bankInfoReceivedDate": "2026-08-05",
+    "dishonourReason": "insufficient_funds",
+    "presentationCount": 1,
+    "noticeSentDate": "2026-08-25",
+    "noticeReceivedDate": "2026-08-28",
+    "noticeServiceMode": "received",
+    "paymentStatus": "none",
+    "paymentDate": null,
+    "complaintFiledDate": null,
+    "legallyEnforceableDebt": "unsure",
+    "interestClaimedInPaise": null,
+    "accusedEmail": null,
+    "accusedMobile": null,
+    "accusedMessagingDetails": null
+  },
+  "overallStatus": "NEEDS_REVIEW",
+  "provisional": true,
+  "gateA": {
+    "status": "NEEDS_REVIEW",
+    "reasoning": [
+      {
+        "rule": "A §138 offence requires the cheque to be for discharge of a legally enforceable debt or other liability",
+        "source": "NI Act §138 Explanation",
+        "triggerDate": null,
+        "countingRule": "n/a",
+        "resultDate": null,
+        "plainEnglish": "You've marked the underlying debt as 'unsure'. The clocks below are computed anyway so you have the numbers, but nothing here can be relied on until that's confirmed."
+      },
+      {
+        "rule": "When legallyEnforceableDebt is unsure, every computed clock stays provisional until confirmed",
+        "source": "NI Act §138 Explanation",
+        "triggerDate": null,
+        "countingRule": "n/a",
+        "resultDate": null,
+        "plainEnglish": "Every figure below is computed and shown for information, but the whole result is provisional until you confirm the cheque was for a legally enforceable debt or other liability — without that, this is not a §138 case at all."
+      }
+    ]
+  },
+  "clock1": {
+    "clock": "presentation_validity",
+    "status": "PASS",
+    "lastValidPresentationDate": "2026-10-01",
+    "statutorySixMonthDate": "2027-01-01",
+    "reasoning": [
+      {
+        "rule": "The cheque must be presented within its period of validity",
+        "source": "NI Act §138 proviso (a); RBI directive effective 01 Apr 2012 (validity reduced from 6 months to 3)",
+        "triggerDate": "2026-07-01",
+        "countingRule": "Exclude the trigger day; add 3 calendar months, clamped to month-end",
+        "resultDate": "2026-10-01",
+        "plainEnglish": "The cheque is dated 1 Jul 2026 and stays valid for presentation until 1 Oct 2026. It was presented on 1 Aug 2026, within that window."
+      }
+    ]
+  },
+  "clock2": {
+    "clock": "notice_window",
+    "status": "PASS",
+    "noticeDeadline": "2026-09-04",
+    "assumption": null,
+    "reasoning": [
+      {
+        "rule": "A demand notice must be sent within 30 days of learning of the dishonour",
+        "source": "NI Act §138 proviso (b); day-counting per §9 General Clauses Act 1897, applied in Econ Antri Ltd v. Rom Industries Ltd (2014) 11 SCC 769",
+        "triggerDate": "2026-08-05",
+        "countingRule": "Exclude the trigger day; deadline = trigger + 30 days",
+        "resultDate": "2026-09-04",
+        "plainEnglish": "You learned of the dishonour on 5 Aug 2026 and had until 4 Sep 2026 to send notice. It was sent on 25 Aug 2026, in time."
+      }
+    ]
+  },
+  "clock3": {
+    "clock": "payment_window",
+    "status": "PASS",
+    "paymentWindowEnds": { "basis": "computed", "date": "2026-09-12" },
+    "causeOfActionDate": { "basis": "computed", "date": "2026-09-13" },
+    "deemedService": false,
+    "reasoning": [
+      {
+        "rule": "The drawer has 15 days from receiving the notice to pay before an offence is complete",
+        "source": "NI Act §138 proviso (c)",
+        "triggerDate": "2026-08-28",
+        "countingRule": "Exclude the trigger day; window ends at trigger + 15 days; the offence is complete the day after",
+        "resultDate": "2026-09-12",
+        "plainEnglish": "Notice was received on 28 Aug 2026. The drawer had until 12 Sep 2026 to pay. No payment was made, so the offence became complete on 13 Sep 2026."
+      }
+    ]
+  },
+  "clock4": {
+    "clock": "complaint_filing",
+    "status": "live",
+    "filingWindowOpens": "2026-09-13",
+    "filingDeadline": "2026-10-13",
+    "daysRemaining": 26,
+    "reasoning": [
+      {
+        "rule": "A complaint must be filed within one month of the cause of action, and not before",
+        "source": "NI Act §142(1)(b)",
+        "triggerDate": "2026-09-13",
+        "countingRule": "Exclude the trigger day; deadline = same day-of-month next calendar month, clamped to month-end",
+        "resultDate": "2026-10-13",
+        "plainEnglish": "The offence became complete on 13 Sep 2026, opening the filing window. The complaint must be filed by 13 Oct 2026 — 26 days from today — and not before 13 Sep 2026."
+      }
+    ]
+  }
+}

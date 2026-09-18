@@ -1,0 +1,83 @@
+{
+  "caseId": "fixture-act-now",
+  "computedAt": "2026-09-17",
+  "today": "2026-09-17",
+  "facts": {
+    "payeeName": "Anand Traders",
+    "payeeAddress": "14 MG Road, Pune 411001",
+    "drawerName": "Suresh Kumar",
+    "drawerAddress": "22 Church Street, Pune 411002",
+    "chequeNumber": "004521",
+    "chequeDate": "2026-07-01",
+    "amountInPaise": 50000000,
+    "drawerBankName": "Sunrise Cooperative Bank",
+    "drawerBankBranch": "Church Street Branch",
+    "payeeBankBranch": "MG Road Branch",
+    "presentationDate": "2026-08-15",
+    "dishonourMemoDate": "2026-08-18",
+    "bankInfoReceivedDate": "2026-08-20",
+    "dishonourReason": "insufficient_funds",
+    "presentationCount": 1,
+    "noticeSentDate": null,
+    "noticeReceivedDate": null,
+    "noticeServiceMode": "unknown",
+    "paymentStatus": "none",
+    "paymentDate": null,
+    "complaintFiledDate": null,
+    "legallyEnforceableDebt": "yes",
+    "interestClaimedInPaise": null,
+    "accusedEmail": null,
+    "accusedMobile": null,
+    "accusedMessagingDetails": null
+  },
+  "overallStatus": "ACT_NOW",
+  "provisional": false,
+  "gateA": {
+    "status": "PROCEED",
+    "reasoning": [
+      {
+        "rule": "A §138 offence requires a legally enforceable debt, and the dishonour reason must fall within the statute's own words or settled case law",
+        "source": "NI Act §138 Explanation",
+        "triggerDate": null,
+        "countingRule": "n/a",
+        "resultDate": null,
+        "plainEnglish": "The debt is confirmed as legally enforceable, and the bank's reason (insufficient funds) is squarely within §138's own text. Proceed."
+      }
+    ]
+  },
+  "clock1": {
+    "clock": "presentation_validity",
+    "status": "PASS",
+    "lastValidPresentationDate": "2026-10-01",
+    "statutorySixMonthDate": "2027-01-01",
+    "reasoning": [
+      {
+        "rule": "The cheque must be presented within its period of validity",
+        "source": "NI Act §138 proviso (a); RBI directive effective 01 Apr 2012 (validity reduced from 6 months to 3)",
+        "triggerDate": "2026-07-01",
+        "countingRule": "Exclude the trigger day; add 3 calendar months, clamped to month-end. The statute allows 6 months or the period of validity, whichever is earlier — since 01 Apr 2012 the RBI has fixed validity at 3 months, so 3 months governs over the statutory 6.",
+        "resultDate": "2026-10-01",
+        "plainEnglish": "The cheque is dated 1 Jul 2026 and stays valid for presentation until 1 Oct 2026 (not 1 Jan 2027 — RBI shortened validity to 3 months in 2012). It was presented on 15 Aug 2026, well within that window."
+      }
+    ]
+  },
+  "clock2": {
+    "clock": "notice_window",
+    "status": "live",
+    "noticeDeadline": "2026-09-19",
+    "daysRemaining": 2,
+    "assumption": null,
+    "reasoning": [
+      {
+        "rule": "A demand notice must be sent within 30 days of learning of the dishonour",
+        "source": "NI Act §138 proviso (b); day-counting per §9 General Clauses Act 1897, applied in Econ Antri Ltd v. Rom Industries Ltd (2014) 11 SCC 769",
+        "triggerDate": "2026-08-20",
+        "countingRule": "Exclude the trigger day; deadline = trigger + 30 days",
+        "resultDate": "2026-09-19",
+        "plainEnglish": "You learned of the dishonour (from the bank, not just the memo) on 20 Aug 2026. You have until 19 Sep 2026 — 2 days from today — to send the demand notice."
+      }
+    ]
+  },
+  "clock3": null,
+  "clock4": null
+}

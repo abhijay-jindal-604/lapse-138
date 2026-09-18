@@ -6,7 +6,10 @@
 // conversion (Fliegel & Van Flandern), so it needs no timezone database and
 // gives identical answers regardless of the host's local timezone.
 
-export type ISODate = string // YYYY-MM-DD
+// Shape-checked at the type layer: a bare `string` cannot be passed where an
+// ISODate is expected without an explicit assertion, catching a swapped
+// argument or an unformatted date at compile time (§6).
+export type ISODate = `${number}-${number}-${number}` // YYYY-MM-DD
 
 function parseISODate(date: ISODate): { year: number; month: number; day: number } {
   const [year, month, day] = date.split('-').map(Number)
@@ -17,7 +20,7 @@ function toISODate(year: number, month: number, day: number): ISODate {
   const yyyy = String(year).padStart(4, '0')
   const mm = String(month).padStart(2, '0')
   const dd = String(day).padStart(2, '0')
-  return `${yyyy}-${mm}-${dd}`
+  return `${yyyy}-${mm}-${dd}` as ISODate
 }
 
 function isLeapYear(year: number): boolean {
@@ -104,5 +107,5 @@ export function todayInIST(): ISODate {
     month: '2-digit',
     day: '2-digit',
   })
-  return formatter.format(new Date())
+  return formatter.format(new Date()) as ISODate
 }

@@ -148,8 +148,9 @@ telling them only that they are dead is close to useless.
    information but mark every result provisional.
 3. Dishonour reason:
    - `insufficient_funds`, `exceeds_arrangement` → proceed. (Squarely the statutory words.)
-   - `account_closed`, `stop_payment` → proceed, attach note: covered by §138 on settled
-     case law rather than the bare words; a lawyer should confirm.
+   - `account_closed`, `stop_payment` → proceed, with a reasoning step recording that
+     coverage rests on settled case law rather than the bare statutory words; a lawyer
+     should confirm.
    - anything else → **NEEDS_REVIEW**. Stop advancing; still show Clock 1 for information.
 
 ### Clock 1 — Presentation validity · §138 proviso (a)
@@ -161,8 +162,8 @@ telling them only that they are dead is close to useless.
   of thing a judge will poke at.
 - If `presentationDate === null`:
   - `today <= lastValidPresentationDate` → **ACT_NOW**: "present the cheque within N days".
-  - else → **NOT_A_138_CASE** (stale instrument). Static note: a civil suit on the
-    underlying debt may still be open. Nothing further.
+  - else → **NOT_A_138_CASE** (stale instrument), with a reasoning step noting a civil
+    suit on the underlying debt may still be open. Nothing further.
 - If `presentationDate > lastValidPresentationDate` → **NOT_A_138_CASE** for this
   presentation. Stop.
 - Else → pass.
@@ -319,6 +320,13 @@ Exactly one overall status per case, resolved by this precedence, highest first:
 
 `NEEDS_REVIEW` ranks above `DEADLINE_MISSED` deliberately: we would rather send a human to
 look than announce a loss we are not certain of.
+
+**Resolved during M1-T2 review:** Clock 4's `PREMATURE` outcome is not one of the six values
+above, and is deliberately not folded into `OverallStatus` as a seventh member (§6: "get the
+six right now"). When `clock4.status === 'PREMATURE'`, `overallStatus` resolves to
+**`NEEDS_REVIEW`** — consistent with the "send a human to look" bias above, since prematurity
+requires withdrawing and possibly refiling a complaint, not a simple missed-deadline read.
+M1-T4 (status precedence) implements this mapping.
 
 Every status object carries `reasoning: ReasoningStep[]`, where each step is
 `{ rule, source, triggerDate, countingRule, resultDate, plainEnglish }`. The UI renders
