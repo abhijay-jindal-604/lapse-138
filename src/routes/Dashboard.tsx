@@ -22,6 +22,7 @@ type DashboardEntry = {
   id: string
   title: string
   board: ClockBoard
+  isSample: boolean
 }
 
 function titleFor(board: ClockBoard): string {
@@ -29,11 +30,17 @@ function titleFor(board: ClockBoard): string {
 }
 
 // Same three fixtures CaseDetail.tsx resolves by id — kept on the dashboard so
-// there's something to click before any case has been saved for real.
+// there's something to click before any case has been saved for real. Not part of
+// M4-T4's seeded isSample data, so they don't trigger the sample-data banner.
 const FIXTURE_ENTRIES: DashboardEntry[] = [
-  { id: 'act-now', title: titleFor(actNow as ClockBoard), board: actNow as ClockBoard },
-  { id: 'deadline-missed', title: titleFor(deadlineMissed as ClockBoard), board: deadlineMissed as ClockBoard },
-  { id: 'needs-review', title: titleFor(needsReview as ClockBoard), board: needsReview as ClockBoard },
+  { id: 'act-now', title: titleFor(actNow as ClockBoard), board: actNow as ClockBoard, isSample: false },
+  {
+    id: 'deadline-missed',
+    title: titleFor(deadlineMissed as ClockBoard),
+    board: deadlineMissed as ClockBoard,
+    isSample: false,
+  },
+  { id: 'needs-review', title: titleFor(needsReview as ClockBoard), board: needsReview as ClockBoard, isSample: false },
 ]
 
 function formatDayCount(deadline: NextDeadline): string {
@@ -53,7 +60,12 @@ export function Dashboard() {
 
   useEffect(() => {
     listCases()
-      .then((real) => setCases([...real, ...FIXTURE_ENTRIES]))
+      // The M1 fixtures' dates are hardcoded, not relative to today (unlike seed.ts's
+      // sample cases), so they only exist to give the dashboard something to click
+      // before any case — real or seeded — has actually been saved. Once real cases
+      // exist, mixing in a fixture with a fixed, ever-drifting-more-overdue date would
+      // fight M4-T4's "hero case sits at the top" guarantee, so it drops out entirely.
+      .then((real) => setCases(real.length > 0 ? real : [...real, ...FIXTURE_ENTRIES]))
       .catch((err) => {
         setError(err instanceof Error ? err.message : 'Failed to load saved cases')
         setCases(FIXTURE_ENTRIES)
@@ -82,11 +94,13 @@ export function Dashboard() {
     })
 
   const mostUrgentId = rows[0]?.deadline ? rows[0].id : null
+  const hasSampleData = rows.some((c) => c.isSample)
 
   return (
     <section>
       <h1>Dashboard</h1>
       {error && <p className="case-form__error">{error}</p>}
+      {hasSampleData && <p className="dashboard-sample-banner">Sample data. Not real cases.</p>}
       <ol className="dashboard-list">
         {rows.map((c) => {
           const isMostUrgent = c.id === mostUrgentId

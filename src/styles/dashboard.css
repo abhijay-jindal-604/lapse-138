@@ -1,3 +1,25 @@
+/* LEGAL_RULES.md §7: "On the dashboard: 'Sample data. Not real cases.' while sample
+   data is loaded." Reuses .disclaimer-banner's advisory colour language (layout.css)
+   since this is the same "heads up, don't rely on this" register — not an error. */
+.dashboard-sample-banner {
+  margin: 14px 0 0;
+  padding: 8px 14px;
+  border: 1px solid var(--advisory-border, #c9a227);
+  background: var(--advisory-bg, #fff8e1);
+  color: var(--advisory-text, #5c4a00);
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 6px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .dashboard-sample-banner {
+    --advisory-border: #7a611c;
+    --advisory-bg: #2a2410;
+    --advisory-text: #e8d385;
+  }
+}
+
 .dashboard-list {
   list-style: none;
   margin: 20px 0 0;

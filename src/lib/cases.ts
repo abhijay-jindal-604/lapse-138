@@ -38,6 +38,7 @@ export type CaseSummary = {
   id: string
   title: string
   board: ClockBoard
+  isSample: boolean
 }
 
 // M4-T3: the dashboard needs every saved case's full board (to derive the next
@@ -54,6 +55,7 @@ export async function listCases(): Promise<CaseSummary[]> {
       id: c.id,
       title: c.title,
       board: JSON.parse(c.result as unknown as string) as ClockBoard,
+      isSample: c.isSample ?? false,
     }))
 }
 
