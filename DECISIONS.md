@@ -107,6 +107,11 @@ own account verification (their message says normally &lt;2 hours) rather than s
 and proceed on all non-Bedrock M0/M1 work in the meantime. If still blocked well beyond a
 couple of hours, open an AWS Support "Account and billing" case (free on Basic support).
 
+**M0-T1 retry, 2026-09-18 10:53 IST:** re-ran the same `converse` call — still
+`ValidationException: Operation not allowed`, same failure mode as above, hold not yet
+cleared. Proceeding with M0-T5 (backend skeleton) in the meantime since it needs
+CloudFormation/AppSync/DynamoDB/S3 only, none of which are affected by this hold.
+
 ---
 
 ## D-05 · No Textract
