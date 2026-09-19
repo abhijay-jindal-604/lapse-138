@@ -4,9 +4,9 @@
    mono numerics. See project/tokens.css in the design canvas this was
    adopted from (claude.ai/artifact/NST19XSDTz6tLEuVfTQY72). */
 :root {
-  --paper: #f2ecdd;
-  --panel: #fffdf7;
-  --panel-sunk: #ece4d2;
+  --paper: #f5f2ea;
+  --panel: #fffefb;
+  --panel-sunk: #edeae0;
   --ink: #211b15;
   --ink-soft: #6e6552;
   --ink-faint: #9a9179;
