@@ -1,0 +1,43 @@
+{
+  "_readme": "CaseFacts for the M4-T7 demo case. The eight fields under _fromDocument are what dishonour-memo.pdf extracts (confidence ~0.9+, each with a sourceQuote from the memo); everything else is human-only and must be entered on the confirmation screen — the six status fields plus the three affidavit-boundary fields (LEGAL_RULES.md §2/§7). bankInfoReceivedDate is deliberately left null here to reproduce DEMO.md's 'correct a field' beat: the confirmation screen falls back to dishonourMemoDate (2026-07-24) with an on-screen assumption notice, computing a still-DEADLINE_MISSED-but-wrong noticeDeadline of 2026-08-23; entering the real 2026-08-06 (the trader was told about the bounce ~13 days after the bank generated the memo, not on the memo date itself) recomputes it to 2026-09-05 without changing the overall verdict. Verified with packages/rules' computeClockBoard for today in 2026-09-19..2026-09-22 (a few days' recording-slip buffer): overallStatus DEADLINE_MISSED, clock1 PASS (cheque valid for presentation until 2026-10-02), clock2 DEADLINE_MISSED with a RE_PRESENT_CHEQUE recoveryPath gated on that same 2026-10-02 date, both before and after the bankInfoReceivedDate correction.",
+  "_fromDocument": ["chequeNumber", "chequeDate", "amountInPaise", "drawerBankName", "drawerBankBranch", "presentationDate", "dishonourMemoDate", "dishonourReason"],
+  "facts": {
+    "payeeName": "Anand Traders",
+    "payeeAddress": "14 MG Road, Pune 411001",
+    "drawerName": "Suresh Kumar",
+    "drawerAddress": "22 Church Street, Pune 411002",
+
+    "chequeNumber": "317042",
+    "chequeDate": "2026-07-02",
+    "amountInPaise": 32000000,
+    "drawerBankName": "Konkan Mercantile Co-operative Bank Ltd",
+    "drawerBankBranch": "Fort Branch, Mumbai",
+    "payeeBankBranch": "MG Road Branch, Pune",
+
+    "presentationDate": "2026-07-20",
+    "dishonourMemoDate": "2026-07-24",
+    "bankInfoReceivedDate": null,
+    "dishonourReason": "insufficient_funds",
+    "presentationCount": 1,
+
+    "noticeSentDate": null,
+    "noticeReceivedDate": null,
+    "noticeServiceMode": "unknown",
+
+    "paymentStatus": "none",
+    "paymentDate": null,
+
+    "complaintFiledDate": null,
+
+    "legallyEnforceableDebt": "yes",
+
+    "interestClaimedInPaise": null,
+
+    "accusedEmail": null,
+    "accusedMobile": null,
+    "accusedMessagingDetails": null
+  },
+  "_afterCorrection": {
+    "bankInfoReceivedDate": "2026-08-06"
+  }
+}
