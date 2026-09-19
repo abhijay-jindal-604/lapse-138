@@ -1,18 +1,43 @@
-@import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,500;0,8..60,600;1,8..60,600&family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
 
+/* Lapse — "Statute Register" direction: paper/ink palette, serif titles,
+   mono numerics. See project/tokens.css in the design canvas this was
+   adopted from (claude.ai/artifact/NST19XSDTz6tLEuVfTQY72). */
 :root {
-  --text: #6b6375;
-  --text-muted: #9b95a1;
-  --text-h: #0b0810;
-  --bg: #fff;
-  --border: #e5e4e7;
+  --paper: #f2ecdd;
+  --panel: #fffdf7;
+  --panel-sunk: #ece4d2;
+  --ink: #211b15;
+  --ink-soft: #6e6552;
+  --ink-faint: #9a9179;
+  --rule: rgba(33, 27, 21, 0.14);
+  --rule-strong: rgba(33, 27, 21, 0.34);
 
-  --sidebar-bg: #f7f6f8;
-  --ink: #0b0810;
+  --missed: #9c2e1d;
+  --missed-tint: rgba(156, 46, 29, 0.08);
+  --actnow: #a15a17;
+  --actnow-tint: rgba(161, 90, 23, 0.09);
+  --review: #8c6c18;
+  --review-tint: rgba(140, 108, 24, 0.09);
+  --ontrack: #2b6b4c;
+  --ontrack-tint: rgba(43, 107, 76, 0.09);
+  --resolved: #2a6670;
+  --resolved-tint: rgba(42, 102, 112, 0.08);
+  --neutral: #5b5646;
+  --neutral-tint: rgba(91, 86, 70, 0.08);
 
-  --sans: 'Public Sans', system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: 'Public Sans', system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: 'IBM Plex Mono', ui-monospace, Consolas, monospace;
+  /* Back-compat aliases so existing component CSS keeps working unchanged. */
+  --text: var(--ink-soft);
+  --text-muted: var(--ink-faint);
+  --text-h: var(--ink);
+  --bg: var(--paper);
+  --border: var(--rule);
+  --sidebar-bg: var(--panel);
+
+  --serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  --sans: 'Archivo', system-ui, -apple-system, sans-serif;
+  --heading: var(--serif);
+  --mono: 'IBM Plex Mono', 'SF Mono', Menlo, monospace;
 
   font: 16px/145% var(--sans);
   letter-spacing: normal;
@@ -27,14 +52,32 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --text: #9ca3af;
-    --text-muted: #7d8290;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --sidebar-bg: #1b1c22;
-    --ink: #f3f4f6;
+    --paper: #1c1712;
+    --panel: #241e17;
+    --panel-sunk: #16120d;
+    --ink: #f1ead9;
+    --ink-soft: #beb29b;
+    --ink-faint: #8c8271;
+    --rule: rgba(241, 234, 217, 0.14);
+    --rule-strong: rgba(241, 234, 217, 0.3);
+
+    --missed: #dd7a63;
+    --missed-tint: rgba(221, 122, 99, 0.12);
+    --actnow: #d99f56;
+    --actnow-tint: rgba(217, 159, 86, 0.13);
+    --review: #cdac52;
+    --review-tint: rgba(205, 172, 82, 0.13);
+    --ontrack: #63ab84;
+    --ontrack-tint: rgba(99, 171, 132, 0.12);
+    --resolved: #63a5b0;
+    --resolved-tint: rgba(99, 165, 176, 0.11);
+    --neutral: #a89e88;
+    --neutral-tint: rgba(168, 158, 136, 0.11);
   }
+}
+
+* {
+  box-sizing: border-box;
 }
 
 body {
@@ -51,6 +94,20 @@ h2 {
   font-family: var(--heading);
   font-weight: 600;
   color: var(--text-h);
+}
+
+a {
+  color: inherit;
+}
+
+button {
+  font: inherit;
+}
+
+input,
+select,
+textarea {
+  font-family: var(--sans);
 }
 
 code {

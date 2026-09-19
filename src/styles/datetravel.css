@@ -9,13 +9,16 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  padding: 14px 16px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
+  padding: 16px 18px;
+  border: 1px solid var(--rule-strong);
+  background: var(--panel);
+  border-radius: 2px;
 }
 
 .date-travel__question {
+  font-family: var(--serif);
   font-weight: 600;
+  font-size: 16px;
   color: var(--text-h);
 }
 
@@ -34,13 +37,13 @@
 .date-travel__reset {
   align-self: flex-start;
   margin-top: 4px;
-  padding: 6px 12px;
-  font-size: 14px;
+  padding: 7px 14px;
+  font-size: 13px;
   font-family: var(--sans);
   color: var(--text-h);
   background: transparent;
-  border: 1px solid var(--border);
-  border-radius: 6px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 2px;
   cursor: pointer;
 }
 

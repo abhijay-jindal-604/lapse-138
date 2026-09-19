@@ -15,7 +15,7 @@
 }
 
 .case-detail__breadcrumb a {
-  color: var(--text);
+  color: var(--ink-soft);
   text-decoration: none;
 }
 
@@ -25,8 +25,12 @@
 
 .case-detail__eyebrow {
   margin: 0 0 4px;
-  font-size: 13px;
-  color: var(--text-muted);
+  font-family: var(--mono);
+  font-size: 11.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-faint);
 }
 
 .case-detail__title {
@@ -42,14 +46,15 @@
 
 .case-detail__meta {
   margin: 8px 0 0;
-  font-size: 14px;
-  color: var(--text);
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--ink-soft);
 }
 
 .case-detail__disclaimer {
   margin: 4px 0 24px;
   font-size: 13px;
-  color: var(--text-muted);
+  color: var(--ink-faint);
 }
 
 .clock-board__header {
@@ -61,44 +66,50 @@
 
 .clock-board__meta {
   margin: -8px 0 0;
-  font-size: 13px;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  color: var(--ink-faint);
 }
 
 .status-badge {
-  display: inline-block;
-  padding: 3px 9px;
-  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 11px;
+  border-radius: 2px;
+  font-family: var(--sans);
   font-weight: 700;
-  font-size: 13px;
-  letter-spacing: normal;
-  color: #fff;
-  background: #6b6375;
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--panel);
+  background: var(--neutral);
 }
 
 .status-badge[data-overall-status='ON_TRACK'] {
-  background: #1e7a4a;
+  background: var(--ontrack);
 }
 .status-badge[data-overall-status='ACT_NOW'] {
-  background: #b45f06;
+  background: var(--actnow);
 }
 .status-badge[data-overall-status='DEADLINE_MISSED'] {
-  background: #a52121;
+  background: var(--missed);
 }
 .status-badge[data-overall-status='NEEDS_REVIEW'] {
-  background: #9a7c0a;
+  background: var(--review);
 }
 .status-badge[data-overall-status='RESOLVED'] {
-  background: #2f6f8f;
+  background: var(--resolved);
 }
 .status-badge[data-overall-status='NOT_A_138_CASE'] {
-  background: #55535c;
+  background: var(--neutral);
 }
 
 .provisional-flag {
-  font-size: 13px;
+  font-family: var(--sans);
+  font-size: 12.5px;
   font-weight: 600;
-  color: #9a7c0a;
-  border: 1px dashed #9a7c0a;
+  color: var(--review);
+  border: 1px dashed var(--review);
   border-radius: 999px;
   padding: 4px 10px;
 }
@@ -110,24 +121,28 @@
 }
 
 .clock-card {
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 16px 18px;
+  border: 1px solid var(--rule-strong);
+  background: var(--panel);
+  border-radius: 2px;
+  padding: 18px 22px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 9px;
 }
 
 .clock-card__head {
   display: flex;
-  align-items: center;
-  gap: 10px;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
   flex-wrap: wrap;
 }
 
 .clock-card h3 {
   margin: 0;
-  font-size: 15px;
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 16.5px;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -135,105 +150,109 @@
 
 .clock-card h3::before {
   content: '';
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--clock-status-color, var(--text));
+  width: 7px;
+  height: 7px;
   flex-shrink: 0;
+  background: var(--clock-status-color, var(--ink-faint));
 }
 
 .clock-card__badge {
-  font-size: 12px;
+  font-family: var(--sans);
+  font-size: 11.5px;
   font-weight: 700;
-  padding: 3px 9px;
-  border-radius: 4px;
-  color: var(--clock-status-color, var(--text));
-  background: var(--clock-status-bg, rgba(107, 99, 117, 0.1));
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--clock-status-color, var(--ink-soft));
 }
 
 .clock-card__dates {
   margin: 0;
-  font-size: 14.5px;
+  font-family: var(--mono);
+  font-size: 13.5px;
+  color: var(--ink);
 }
 
 .clock-card__assumption {
   margin: 0;
-  font-size: 13.5px;
+  font-family: var(--sans);
+  font-size: 13px;
   font-style: italic;
+  color: var(--ink-soft);
   padding: 8px 10px;
-  border-radius: 5px;
-  background: rgba(154, 124, 10, 0.12);
+  background: var(--review-tint);
 }
 
 /* Clock-level status colours — borrow the same palette as the overall badge.
-   Carried on a status dot + soft badge (--clock-status-color/-bg), not a side-tab border. */
+   Carried on a status dot + label colour (--clock-status-color), not a side-tab border. */
 .clock-card[data-clock-status='PASS'],
 .clock-card[data-clock-status='RESOLVED'],
 .clock-card[data-clock-status='PROCEED'],
 .clock-card[data-clock-status='PROCEED_WITH_NOTE'] {
-  --clock-status-color: #1e7a4a;
-  --clock-status-bg: #eaf5ef;
+  --clock-status-color: var(--ontrack);
 }
 .clock-card[data-clock-status='live'],
 .clock-card[data-clock-status='ACT_NOW'] {
-  --clock-status-color: #b45f06;
-  --clock-status-bg: #fdf3e8;
+  --clock-status-color: var(--actnow);
 }
 .clock-card[data-clock-status='DEADLINE_MISSED'] {
-  --clock-status-color: #a52121;
-  --clock-status-bg: #fdf0ef;
+  --clock-status-color: var(--missed);
 }
 .clock-card[data-clock-status='NEEDS_REVIEW'],
 .clock-card[data-clock-status='PREMATURE'] {
-  --clock-status-color: #9a7c0a;
-  --clock-status-bg: #fdf8e7;
+  --clock-status-color: var(--review);
 }
 .clock-card[data-clock-status='NOT_A_138_CASE'],
 .clock-card[data-clock-status='not_yet_open'],
 .clock-card[data-clock-status='BLOCKED'] {
-  --clock-status-color: #6b6375;
-  --clock-status-bg: #f3f1f4;
+  --clock-status-color: var(--neutral);
 }
 
 .date-estimate--advisory {
   border-bottom: 1px dashed currentColor;
   font-style: italic;
-  color: #9a7c0a;
+  color: var(--review);
 }
 
 .recovery-path {
-  border: 1px solid #6b4fa0;
-  border-radius: 8px;
-  padding: 18px 20px;
+  border: 1px solid var(--rule-strong);
+  border-top: 3px double var(--ink);
+  border-radius: 2px;
+  padding: 18px 22px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  background: #f6f2fb;
+  gap: 6px;
+  background: var(--panel);
 }
 
 .recovery-path__label {
   margin: 0;
-  font-size: 11.5px;
+  font-family: var(--mono);
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #6b4fa0;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
 }
 
 .recovery-path__headline {
   margin: 0;
+  font-family: var(--serif);
   font-weight: 600;
+  font-size: 16px;
+  color: var(--actnow);
 }
 
 .recovery-path__plain {
   margin: 0;
-  font-size: 14px;
+  font-size: 13.5px;
+  color: var(--ink);
 }
 
 .recovery-path__source {
   margin: 0;
-  font-size: 12.5px;
+  font-size: 12px;
   font-style: italic;
+  color: var(--ink-soft);
 }
 
 /* Reasoning chain — shared by every clock card, via ReasoningChain.tsx.
@@ -245,9 +264,10 @@
 
 .reasoning-chain-summary {
   cursor: pointer;
-  font-size: 13px;
+  font-family: var(--sans);
+  font-size: 12.5px;
   font-weight: 600;
-  color: var(--text-h);
+  color: var(--ink);
   list-style: none;
 }
 
@@ -273,7 +293,7 @@
 }
 
 .reasoning-step {
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--rule);
   padding-top: 10px;
   display: flex;
   flex-direction: column;
@@ -282,8 +302,10 @@
 
 .reasoning-step__rule {
   margin: 0;
-  font-weight: 600;
-  font-size: 13.5px;
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--ink);
 }
 
 .reasoning-step__meta {
@@ -300,21 +322,26 @@
 }
 
 .reasoning-step__meta dt {
-  font-size: 10.5px;
+  font-family: var(--sans);
+  font-size: 10px;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--text-muted);
+  letter-spacing: 0.05em;
+  color: var(--ink-faint);
 }
 
 .reasoning-step__meta dd {
   margin: 0;
-  font-size: 13px;
+  font-size: 12.5px;
   font-family: var(--mono);
+  color: var(--ink);
 }
 
 .reasoning-step__plain {
   margin: 0;
-  font-size: 13.5px;
+  font-family: var(--sans);
+  font-size: 13px;
+  color: var(--ink-soft);
 }
 
 @media (max-width: 640px) {
