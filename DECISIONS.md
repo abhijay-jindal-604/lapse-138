@@ -132,6 +132,18 @@ Support Center console and open that "Account and billing" case — it will not 
 by further CLI retries. M3 and all Bedrock-dependent M4 work (M4-T1, M4-T2, M4-T7) stay
 blocked in the meantime; M5-T0/T1 do not depend on Bedrock and are the next unblocked work.
 
+**M0-T1 retry, 2026-09-19 (later same day):** re-ran the same `converse` call again — still
+the identical `ValidationException: Operation not allowed`. Still no confirmation that the
+AWS Support Center console case has been filed. Not retrying further via CLI until that
+happens; there is nothing left for automated retries to discover here.
+
+**Correction, 2026-09-19:** the AWS Support Center console case *was* filed on 2026-09-18 (a
+human action, confirmed in chat — not visible from this repo or from the CLI, since
+`aws support` is gated to Business/Enterprise plans as noted above, so there is no
+programmatic way to check the case's status). The "no sign it was ever filed" line above was
+wrong at the time it was written. Still waiting on AWS to clear the hold; the 2026-09-19
+`converse` retries above post-date the filing and are both still blocked.
+
 ---
 
 ## D-05 · No Textract
@@ -577,3 +589,64 @@ brand-new Amplify app would.
 Verified on the deployed URL with an independent headless Chromium check (the shared Playwright
 MCP browser was locked by a concurrent session): all three M1-T6 routes plus both fixture case
 routes return `200` and render the disclaimer, nav and fixture clock boards.
+
+---
+
+## D-27 · Pivot off Bedrock entirely: Gemini API for extraction and drafting
+
+**Alternatives:** keep waiting on the AWS Bedrock account-verification hold; use a direct
+Anthropic API key (same Claude models as originally planned); Groq or another free provider.
+
+Rules changed the constraint that put us on Bedrock in the first place. ARCHITECTURE.md §1
+originally ruled out calling a model API directly with "Calling a model API directly would
+fail 'Built on AWS'" — the hackathon organizers clarified by email (2026-09-19) that only
+*deploying* on AWS is required; using Amazon Bedrock specifically is not compulsory. Combined
+with the Bedrock account-verification hold still being unresolved ~30 hours past AWS's own
+<2-hour clearance estimate (D-04) despite a support case filed 2026-09-18, continuing to wait
+on Bedrock is no longer worth the risk to M3/M4.
+
+Direct Anthropic API was the first alternative considered — same models, same prompts as
+planned, pure swap of the invocation layer — but Anthropic's API needs a funded billing
+account (no meaningful free tier), and we do not want a payment-setup dependency blocking the
+build a second time this weekend.
+
+**Decision: Google Gemini API (via Google AI Studio), for both `extractFacts` and
+`draftNotice`.** Genuinely free, no card required. Multimodal document/image input matches the
+architecture's existing design 1:1 (Bedrock Converse's document/image blocks → Gemini's
+equivalent), so M3-T1's shape is unchanged, just the provider. Free-tier request volume is
+comfortably above the ~280-call weekend estimate ARCHITECTURE.md already budgeted for Bedrock.
+
+Neither Lambda had a working Bedrock call yet — `extractFacts` didn't exist, and
+`draftNotice`'s drafting branch was an explicit stub pending this exact decision — so this is
+a fresh build against Gemini, not a rip-and-replace of working code.
+
+**Known trade-off, accepted:** Gemini's free tier permits Google to use prompts/responses to
+improve their products (unlike its paid tier). Accepted here because M3-T5 already requires
+all demo/sample documents to be synthetic with no real names, banks, or account numbers — the
+data actually sent is never real case data on the hackathon path. Would need revisiting before
+any real-user deployment past the hackathon.
+
+**Consequence:** M0-T1 (Bedrock reachability) is retired as a requirement, not fixed — the
+account-verification hold may never clear and no longer blocks anything. M3-T1, M3-T2, M4-T1,
+M4-T2, M4-T7 are unblocked as of this decision, pending a Gemini API key being wired in as a
+Lambda secret.
+
+---
+
+## D-28 · M4-T7's "real (redacted)" demo memo is a format-accurate reconstruction, not an actual redacted document
+**19 Sep 2026.**
+
+No genuine cheque dishonour memo was available to redact — a real one carries a real person's
+banking details, and none of ours had consent to reuse, published or otherwise. Web search
+confirmed the same: banks publish *policy* documents describing the return-memo format (SBI,
+Union Bank, South Indian Bank), never an actual specimen, for the obvious reason.
+
+**Decision:** build `samples/demo-case/dishonour-memo.pdf` by hand to match those real
+conventions — CTS-2010 clearing header, RBI return reason code 01, IFSC/MICR-style codes, a
+masked account number and a redacted drawer name — rather than either waiting on a source
+that doesn't exist or reusing M3-T5's plainer synthetic layout. It carries no "SAMPLE — NOT A
+REAL DOCUMENT" watermark, unlike M3-T5: that task's acceptance criteria required one, this
+task's doesn't, and DEMO.md stages this specific case as the real one on camera. The honest
+paper trail on what it actually is lives here and in TASKS.md's M4-T7 footnote, not stamped on
+the document face — the user's own call, having asked for a web search first and confirmed
+they'll handle any on-camera sensitivity by blurring rather than by an in-frame disclaimer.

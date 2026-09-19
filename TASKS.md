@@ -39,7 +39,7 @@ note.**
 
 | ID | Lane | ∥ | Goal | Touches | Accept when | Needs |
 |---|---|---|---|---|---|---|
-| **M0-T1** | A | | Prove Bedrock is reachable in `ap-south-1` via the global inference profile | nothing (CLI only) | `aws bedrock-runtime converse --region ap-south-1 --model-id global.anthropic.claude-haiku-4-5-20251001-v1:0 ...` returns model text. Paste the output in chat. **If this fails after 30 minutes, stop and switch the two Lambdas to `us-east-1`, then record it in DECISIONS.md D-04.** | — |
+| **M0-T1** | A | 🗑️ | ~~Prove Bedrock is reachable~~ — **retired, not fixed.** Bedrock account-verification hold never cleared (~30h past AWS's own <2h estimate, support case filed 2026-09-18). Organizers clarified by email that only *deploying* on AWS is required, not Bedrock specifically. Pivoted to the Gemini API for `extractFacts`/`draftNotice` — see DECISIONS.md D-27. | nothing (CLI only) | ~~superseded~~ | — |
 | **M0-T2** | B | ✅ | Scaffold the repo: Amplify Gen 2 + Vite + React + TS, npm workspaces with `packages/rules` | root, `src/`, `amplify/`, `packages/rules/` | `npm run dev` serves a page on localhost; `npm test` exits 0; `npx ampx sandbox` completes | — |
 | **M0-T3** | A | ✅ | Billing guardrail before a single Bedrock call is written | AWS console only | A $10 AWS Budgets alert exists and the confirmation email has arrived | — |
 | **M0-T4** | B | ✅ | Deploy `main` to Amplify Hosting from GitHub | Amplify console, `amplify.yml` | A public `https://...amplifyapp.com` URL renders the scaffolded page. **Paste the URL in chat — every later task is verified against it, not localhost.** | M0-T2 |
@@ -148,12 +148,12 @@ Tag this commit `m2-demoable`.
 
 | ID | Lane | ∥ | Goal | Touches | Accept when | Needs |
 |---|---|---|---|---|---|---|
-| **M3-T1** | A | | `extractFacts` Lambda: Bedrock Converse with a document/image block, structured JSON out | `amplify/functions/extractFacts/` | Given the sample memo, returns JSON with cheque number, date, amount, memo date and dishonour reason, each with `confidence` and `sourceQuote` | M0-T1, M0-T5 |
-| **M3-T2** | A | | Enforce the boundary in code | `amplify/functions/extractFacts/handler.ts` | A field returned without a `sourceQuote` is dropped. The six human-only fields **and the three affidavit-boundary fields** from LEGAL_RULES.md §2 are stripped from the model output unconditionally. A unit test proves both. | M3-T1 |
+| **M3-T1** | A | ✅² | `extractFacts` Lambda: Gemini API with a document/image part, structured JSON out (was Bedrock — see DECISIONS.md D-27) | `amplify/functions/extractFacts/` | Given the sample memo, returns JSON with cheque number, date, amount, memo date and dishonour reason, each with `confidence` and `sourceQuote` | Gemini API key (secret), M0-T5 |
+| **M3-T2** | A | ✅³ | Enforce the boundary in code | `amplify/functions/extractFacts/handler.ts` | A field returned without a `sourceQuote` is dropped. The six human-only fields **and the three affidavit-boundary fields** from LEGAL_RULES.md §2 are stripped from the model output unconditionally. A unit test proves both. | M3-T1 |
 | **M3-T3** | B | ✅¹ | Upload UI to S3 with limits and error states | `src/components/Upload.tsx` | A PDF and a JPEG both upload; a 6 MB file is rejected with a readable message, not a crash | M0-T5 |
-| **M3-T4** | B | | Confirmation screen | `src/routes/Confirm.tsx` | Every extracted field is editable and shows its source quote on hover; low-confidence fields are visibly flagged; the six human-only fields appear as explicit questions that must be answered before continuing | M3-T1, M3-T3 |
-| **M3-T5** | A+B | | Four fictional sample documents: a dishonour memo, a bank return memo, a cheque image, a memo with a missing field | `samples/` | All four upload and extract successfully. Every one is visibly watermarked **SAMPLE — NOT A REAL DOCUMENT**. No real names, banks, account numbers or IFSC codes. | M3-T1 |
-| **M3-T6** | B | | Render the advisory receipt-date range (logic already tested in M1-T5/T25) in the confirmation and clock-board UI | `src/components/ClockBoard.tsx` | An `unknown`-service-mode case shows the advisory window in visibly distinct (dashed/muted) styling next to computed deadlines, labelled "advisory"; entering an actual receipt date replaces it with a normal computed deadline | M1-T5, M1-T8 |
+| **M3-T4** | B | ✅⁴ | Confirmation screen | `src/routes/Confirm.tsx` | Every extracted field is editable and shows its source quote on hover; low-confidence fields are visibly flagged; the six human-only fields appear as explicit questions that must be answered before continuing | M3-T1, M3-T3 |
+| **M3-T5** | A+B | ✅⁵ | Four fictional sample documents: a dishonour memo, a bank return memo, a cheque image, a memo with a missing field | `samples/` | All four upload and extract successfully. Every one is visibly watermarked **SAMPLE — NOT A REAL DOCUMENT**. No real names, banks, account numbers or IFSC codes. | M3-T1 |
+| **M3-T6** | B | ✅⁶ | Render the advisory receipt-date range (logic already tested in M1-T5/T25) in the confirmation and clock-board UI | `src/components/ClockBoard.tsx` | An `unknown`-service-mode case shows the advisory window in visibly distinct (dashed/muted) styling next to computed deadlines, labelled "advisory"; entering an actual receipt date replaces it with a normal computed deadline | M1-T5, M1-T8 |
 
 ¹ M3-T3 verified 19 Sep in a local headless browser against the sandbox backend (S3 bucket
 `amplify-lapse-aj-sandbox--lapsedocumentsbucket6fc2-plbn0d2rqhir`, `ap-south-1`), reachable via a
@@ -165,6 +165,120 @@ file.` — no crash, no console error. Limit is 5 MB (deliberately under the 6 M
 accepted are `application/pdf` and `image/jpeg` only. Not yet deployed to the live Amplify URL —
 that's a plain `git push`, not part of this task's scope.
 
+² M3-T1 verified 19 Sep end-to-end against the live sandbox (`ampx sandbox --once`, stack
+`amplify-lapse-aj-sandbox-9638420aaf`): a synthetic dishonour memo
+(`samples/m3-t1-test-dishonour-memo.pdf`, watermarked SAMPLE — NOT A REAL DOCUMENT, fake
+data/bank) uploaded to the S3 documents bucket and queried via `extractFacts(documentKey)` over
+the live AppSync API. All eight fields came back correct with `confidence` ~0.99 and a verbatim
+`sourceQuote` for each — see chat for the full JSON. `gemini-2.5-flash` (the model D-27
+specified) turned out to be retired for new callers as of this build; swapped to
+`gemini-3.6-flash`, the replacement the API's own 404 pointed at. `ExtractedFacts`'s type has
+only the eight document-extractable keys — no slot exists for the six human-only or three
+affidavit-boundary fields, so they can't appear in Lambda output regardless of model behavior;
+a unit test (`extract.test.ts`) also proves a polluted model response gets reduced to exactly
+those eight keys. `amplify/functions/extractFacts/` gained a Gemini-shaped circular-dependency
+fix along the way: `extractFacts` had to move into the data stack (`resourceGroupName: 'data'`)
+and its S3 read grant had to move from `storage/resource.ts`'s `access` callback into a plain
+CDK `bucket.grantRead()` in `backend.ts` — declaring both cross-stack relationships through
+Amplify's `allow.resource()` helper in two different resource files deadlocked CloudFormation's
+nested-stack ordering.
+
+³ M3-T2 verified 19 Sep: `handler.ts` itself imports `$amplify/env/extract-facts`, a path alias
+Amplify only generates inside a sandbox/deploy, which makes `handler.ts` unimportable from a
+plain `vitest run` (confirmed directly — importing it in a probe test throws `Cannot find module
+'$amplify/env/extract-facts'`). So the enforcement is in `amplify/functions/extractFacts/
+boundary.ts`, a dependency-free module `handler.ts` imports and calls
+(`enforceExtractionBoundary(facts)`) on every `extractFactsFromDocument` result before returning
+it — the handler-layer contract this task asks for, just split out so it has its own direct unit
+test (`boundary.test.ts`, 6 cases) instead of an indirect one through `extract.ts`. It re-applies
+both rules explicitly rather than trusting M3-T1's side effects: a field missing a non-empty
+`sourceQuote` is dropped to `null`, and only the eight document-extractable keys are ever copied
+onto the result — the nine excluded fields (whitelisted by name from LEGAL_RULES.md §2/§7) have
+no path onto it even if present on the input, including the case where an excluded field carries
+a well-formed `sourceQuote`. This is deliberately redundant with `extract.ts`'s existing
+`pickField`/`pickKnownFields` and `ExtractedFacts`'s type shape (M3-T1) — the point is that the
+boundary no longer depends on those staying correct.
+
+⁴ M3-T4 verified 19 Sep in a local headless browser, wired through the real deployed
+`UploadDocument.tsx` → `Confirm.tsx` flow against the live sandbox (same stack as footnotes ¹/²
+above) — `Upload`'s `onUploaded` now navigates to the new `/new/confirm` route with the S3 key,
+replacing the old dead-end placeholder. `CaseForm.tsx` (M1-T7) gained `initialDraft`/`fieldMeta`
+props rather than being duplicated: `Confirm.tsx` pre-fills the eight extractable fields and
+passes their `{confidence, sourceQuote}` through, so the six human-only questions and the
+affidavit-boundary group are the exact same, already-accepted UI from M1-T7, not a second
+implementation to drift out of sync. Hit a real bug en route, same AWSJSON-as-string shape as
+M2-T2's write-side bug but on the read side this time: `extractFacts`'s `a.json()` return comes
+back from AppSync as a JSON-*encoded string* (`{"data":{"extractFacts":"{\"chequeNumber\":...}"}}`,
+confirmed by inspecting the live network response), not a parsed object — `src/lib/extraction.ts`
+was calling it directly with no `JSON.parse`, so every field silently read as `undefined` and the
+confirmation screen rendered fully empty with no error shown. Fixed with a `JSON.parse` in
+`extractFactsFromDocument`, verified by re-uploading `samples/m3-t1-test-dishonour-memo.pdf` and
+reading the pre-filled DOM values directly (`chequeNumber` → `004521`, etc.) — checking that the
+route renders would not have caught this; the empty form looked plausible. Also hit a CSS cascade
+bug while verifying the low-confidence flag: `.form-field--extracted input` was declared *before*
+the generic `.form-field input` rule in `form.css`; same specificity, later rule wins in the
+cascade, so the highlight was inert (confirmed via `getComputedStyle` — `border-color` stayed the
+default gray, only `cursor: help` survived since the generic rule doesn't set it). Fixed by moving
+the extraction block after the generic rule. Low-confidence rendering was then verified with a
+mocked `extractFacts` response (Gemini's free-tier quota — 5 req/min — made waiting for a live
+low-confidence sample impractical): a field at `confidence: 0.4` got the `form-field--low-
+confidence` class, the yellow border/background, and "Low confidence — verify against the
+document" visible under the input, confirmed by screenshot. The full submit path was verified live
+(unmocked `Case.create`) with a filled-in form: saved successfully, computed `NOT_A_138_CASE`
+correctly (stale cheque, 3-month validity expired with no presentation date entered), navigated to
+`/case/<id>`, and the network request confirmed `documentKey` — a field that existed on the `Case`
+model since M0-T5 but had never been populated — now saves through end to end (`saveCase` in
+`src/lib/cases.ts` gained an optional `documentKey` parameter). `tsc -b`, `npm run build`, and all
+129 tests stay green throughout.
+
+⁵ M3-T5 built 19 Sep: `samples/m3-t1-test-dishonour-memo.pdf` (from footnote ²) already satisfied
+the "dishonour memo" slot, so it was kept rather than duplicated. Three new files added:
+`samples/m3-t5-bank-return-memo.pdf` (distinct bank/wording, `REFER TO DRAWER`),
+`samples/m3-t5-cheque-image.jpg` (a synthetic cheque, not a memo — fictional payee/signatory/
+account/IFSC, 112 KB), and `samples/m3-t5-missing-field-memo.pdf` (omits `presentationDate`,
+which `extract.ts`'s prompt already treats as optional, to exercise that path deliberately). All
+four watermarked **SAMPLE — NOT A REAL DOCUMENT**, no real names/banks/account numbers/IFSC
+codes, all under the 5 MB limit.
+
+Live-pipeline verification is partial: the dishonour memo and bank-return-memo both went through
+`/new/upload` → `/new/confirm` without error, but returned byte-identical extracted values for
+two documents with different real text (`pdftotext`-confirmed) — a red flag, not a pass. Calling
+`extractFactsFromDocument` directly (bypassing the UI) reproduced this and surfaced the actual
+cause: `gemini-3.6-flash`'s free tier is capped at **20 requests/day**
+(`GenerateRequestsPerDayPerProjectPerModel-FreeTier`), not the "5 req/min" this repo assumed
+(see M3-T4's footnote ⁴ and D-27) — now exhausted, alternating with genuine `503` "high demand"
+errors from Google. The cheque image and missing-field memo were never live-tested as a result.
+This isn't a defect in these sample files or the extraction code: M3-T4's footnote ⁴ already
+confirmed `m3-t1-test-dishonour-memo.pdf` extracted correctly (`chequeNumber` → `004521`, etc.)
+earlier the same day, under the same code path. **D-27's "free-tier comfortably above the
+~280-call weekend estimate" assumption does not hold for `gemini-3.6-flash` and should be
+revisited before relying on this pipeline for the rest of the weekend** — by user direction,
+deferred rather than fixed now, to avoid burning more of the daily quota on top of what today's
+sessions have already used. Remaining verification (cheque image, missing-field memo, and a
+re-check of the two already tested) should happen once the quota window resets or the model
+choice changes.
+
+⁶ M3-T6 verified 19 Sep: `ClockBoard.tsx`'s `formatDateEstimate` (dashed underline, italic,
+muted-gold, `(advisory)` suffix — `.date-estimate--advisory` in `clockboard.css`) and Clock 3's
+`pending_service_confirmation` branch already existed from M1-T8, but no fixture ever exercised
+the T25 scenario (`needs-review.json` is the unrelated `legallyEnforceableDebt: 'unsure'` path),
+so the advisory render path had never actually been seen on screen. Generated
+`packages/rules/fixtures/advisory-window.json` by running `computeClockBoard` on T25's exact
+facts (notice sent 2026-09-01, `noticeReceivedDate: null`, `noticeServiceMode: 'unknown'`) rather
+than hand-writing it, confirmed it reproduces T25's own asserted figures
+(`paymentWindowEnds` 2026-09-19–2026-09-23), and wired it into `CaseDetail.tsx`'s and
+`Dashboard.tsx`'s fixture maps alongside the existing three, plus a new
+`fixtures.test.ts` case asserting `reviewReason: 'pending_service_confirmation'`, the advisory
+basis/dates, and `clock4: null` (mirrors `board.test.ts`'s T25 guard that an advisory clock3
+never feeds a fixed date downstream). Verified visually in a local headless browser at
+`/case/advisory-window`: all three Clock 3 fields (`paymentWindowEnds`, `causeOfActionDate`,
+`earliestSafeFilingDate`) render dashed/italic/muted with "(advisory)" labels, next to Clock
+1/2's plain bold computed dates on the same page — and against `/case/needs-review` side by
+side, where the same field (`paymentWindowEnds`) is `basis: 'computed'` and renders as plain
+bold text, confirming the visual distinction and the computed/advisory swap both work as the
+engine's `basis` field changes, without any `ClockBoard.tsx` rendering-logic change needed.
+`tsc -b` clean, all 111 `packages/rules` tests (including the 2 new ones) green.
+
 **M3 exit:** upload → extract → confirm → correct clock board, on the live URL. Tag `m3-demoable`.
 
 ---
@@ -175,13 +289,89 @@ Supreme Court now requires them to file, not just a calculator result.*
 
 | ID | Lane | ∥ | Goal | Touches | Accept when | Needs |
 |---|---|---|---|---|---|---|
-| **M4-T1** | A | | `draftNotice` Lambda: recompute clocks server-side, then draft around fixed dates | `amplify/functions/draftNotice/` | The returned notice contains the §138 demand, the cheque particulars, the 15-day payment demand, and dates **identical** to the engine's output. A test that feeds the Lambda a tampered client-side result proves it uses its own computation. Also includes the registered-post/tracking-receipt reminder line. | M1-T5, M2-T2 |
-| **M4-T2** | B | | Draft notice editor and download | `src/routes/Draft.tsx` | The draft is editable in place, carries the "DRAFT — for review by a qualified advocate" header, and downloads as a `.txt` that opens cleanly | M4-T1 |
+| **M4-T1** | A | ✅¹ | `draftNotice` Lambda: recompute clocks server-side, then draft around fixed dates via Gemini (was Bedrock — see DECISIONS.md D-27) | `amplify/functions/draftNotice/` | The returned notice contains the §138 demand, the cheque particulars, the 15-day payment demand, and dates **identical** to the engine's output. A test that feeds the Lambda a tampered client-side result proves it uses its own computation. Also includes the registered-post/tracking-receipt reminder line. | Gemini API key (secret), M1-T5, M2-T2 |
+| **M4-T2** | B | ✅ | Draft notice editor and download | `src/routes/Draft.tsx` | The draft is editable in place, carries the "DRAFT — for review by a qualified advocate" header, and downloads as a `.txt` that opens cleanly | M4-T1 |
 | **M4-T5** | A | ✅ | Wire the synopsis-assembly function (already tested in M1-T5/T27) into the `draftNotice` Lambda as a model-free path | `amplify/functions/draftNotice/synopsis.ts` | Given a saved case, returns the synopsis with the "DRAFT SYNOPSIS" header, the accused's contact particulars carried through verbatim with the affidavit-warning line attached, and CloudWatch logs show zero Bedrock invocations for this path | M1-T5, M2-T2 |
 | **M4-T6** | B | ✅ | Synopsis editor and download | `src/routes/Synopsis.tsx` | Editable in place, downloads as `.txt`, reachable from the same case detail view as the notice | M4-T5 |
 | **M4-T3** | B | ✅ | Dashboard sorted by urgency — secondary surface, not the demo lead | `src/routes/Dashboard.tsx` | Cases are listed sorted by `nextDeadlineDate` ascending, with status chips and a visible day count. The most urgent case is unmistakably at the top. | M2-T2 |
 | **M4-T4** | A | ✅ | Seed 12 sample cases covering every status, including the hero case | `scripts/seed.ts` | Running the seed script populates 12 cases; all six statuses appear; the hero case sits at the top of the dashboard; every case has `isSample: true` and the sample banner shows | M4-T3 |
-| **M4-T7** | A | | One real (redacted) sample dishonour memo for the demo, distinct from the four synthetic samples in M3-T5 | `samples/demo-case/` | Extracts cleanly and produces a **`DEADLINE_MISSED`** result — the notice window already blown, `recoveryPath` populated with the re-presentation salvage gated on live cheque validity — with a non-trivial reasoning chain. This is the case the video actually walks through, not a dashboard row and not a healthy one; the realistic user is already late, so the demo shows that case, not the easy one. | M3-T1, M4-T5 |
+| **M4-T7** | A | ✅² | One real (redacted) sample dishonour memo for the demo, distinct from the four synthetic samples in M3-T5 | `samples/demo-case/` | Extracts cleanly and produces a **`DEADLINE_MISSED`** result — the notice window already blown, `recoveryPath` populated with the re-presentation salvage gated on live cheque validity — with a non-trivial reasoning chain. This is the case the video actually walks through, not a dashboard row and not a healthy one; the realistic user is already late, so the demo shows that case, not the easy one. | M3-T1, M4-T5 |
+
+¹ M4-T1 verified 19 Sep both in unit tests and live against the sandbox
+(`amplify-lapse-aj-sandbox-9638420aaf`). Split into three files: `notice.ts` (fixed-dates
+assembly + the injectable-`generateContent` Gemini call, same testable shape as
+`extractFacts/extract.ts`), `draft.ts` (the recompute boundary — `CaseRecord.result` is typed
+`unknown` and never read, only `facts` and the server's own `today` feed `computeClockBoard`),
+and `handler.ts` (AppSync/data-client wiring, routes `synopsisForCase` and the new
+`draftNoticeForCase` through one Lambda). Every date in the output is assembled
+deterministically from the recomputed board — Gemini drafts only the narrative recital
+paragraph, explicitly forbidden from stating any date itself (same "model only phrases, never
+supplies facts" boundary TASKS.md's S2 describes) — so "dates identical to the engine's
+output" holds by construction rather than depending on a free-tier model reproducing a string
+verbatim.
+
+Hit a real routing bug live that no unit test could catch, since it's specific to how Amplify
+Gen2's function directive actually invokes the Lambda: `Schema[...]['functionHandler']` types
+the event as AppSync's *direct* Lambda resolver shape (`event.info.fieldName`), but Gen2's
+function directive instead invokes through a JS/VTL pipeline function with its own flat
+payload — confirmed by reading the deployed resolver template in
+`.amplify/artifacts/cdk.out/*.vtl`: `"fieldName": $util.toJson($ctx.stash.get("fieldName"))`
+at the payload root, not nested under `info`. `event.info` type-checks but is `undefined` at
+runtime, which surfaced as `Cannot read properties of undefined (reading 'fieldName')` on the
+first live call. Fixed by reading `event.fieldName` directly (handler.ts's `FieldRoutedEvent`
+cast) — caught only because M3-T2's precedent (handler.ts can't be unit-tested directly, since
+importing `$amplify/env/draft-notice` outside a sandbox throws) was followed here too, so this
+one had to be verified live rather than skipped.
+
+Also confirmed live: a case seeded with a deliberately tampered `Case.result` (fake
+`clock2.noticeDeadline: '2099-01-01'`, `overallStatus: 'ON_TRACK'`) — writable by anyone via
+`Case.update`, since `Case` carries `allow.publicApiKey()` — produced an error message citing
+the *correctly recomputed* `2026-07-12` deadline, never the tampered `2099-01-01`, proving the
+recompute boundary holds against the deployed Lambda, not just in `draft.test.ts`'s stubbed
+unit tests. A second live call, with facts adjusted so Clock 2 was still open against the
+real `todayInIST()`, reached the actual Gemini API call and got a real `429
+RESOURCE_EXHAUSTED` — `GenerateRequestsPerDayPerProjectPerModel-FreeTier`, limit 20 — the
+exact free-tier cap D-27 and M3-T1's footnote already documented, now confirmed exhausted for
+today's date across both Lambdas' combined usage. Both verification cases were deleted after
+testing; nothing sample or demo-facing was touched.
+
+² M4-T7 built 19 Sep. Went looking first for an actual real dishonour memo to redact rather
+than fabricate one (asked the user, then web-searched) — none was found; real bank cheque
+return memos aren't published anywhere with consent to reuse, only bank *policy* PDFs
+describing their format (SBI, Union Bank, South Indian Bank return-memo policies, all
+confirming: a definite reason code — "insufficient funds" is RBI code 01 — generated via the
+MICR/CTS-2010 clearing system, dispatched T+1). Built `samples/demo-case/dishonour-memo.pdf`
+by hand (same dependency-free raw-PDF-content-stream technique as the M3-T5 samples) using
+those real conventions: CTS-2010 header, IFSC/MICR-style codes, a masked account number
+(`XXXXXXXX2091`) and a redacted drawer name, rather than M3-T5's plainer synthetic layout —
+distinct in both content and format from all four, as the task asks, and deliberately carries
+no "SAMPLE — NOT A REAL DOCUMENT" watermark (unlike M3-T5, whose task explicitly required
+one; this task doesn't, and DEMO.md stages this case as the real one on camera). Documented
+as a format-accurate reconstruction, not an actual disclosed transaction, here rather than on
+the document face itself.
+
+Dates chosen so the DEADLINE_MISSED/recoveryPath result holds for several days either side of
+today (2026-09-19), not just one exact day, to survive the demo recording slipping: cheque
+dated 2026-07-02 (3-month presentation validity to 2026-10-02, ~12–13 days remaining as of
+19–20 Sep, matching DEMO.md's "twelve days left" beat), presented 2026-07-20, memo dated
+2026-07-24, amount ₹3,20,000 (matches DEMO.md's opening line and `deadline-missed.json`'s
+figure). `bankInfoReceivedDate` (human-only, not document-extractable) is left unset in
+`facts.json`'s base case — the confirmation screen falls back to the memo date with an
+on-screen assumption, per Clock 2's documented fallback (`clocks.ts`) — then corrected to
+2026-08-06 to reproduce DEMO.md's "correct a field" beat; both the pre- and post-correction
+facts were run through `computeClockBoard` directly (not through Gemini) for `today` across
+2026-09-19 through 2026-09-22 and confirmed `overallStatus: DEADLINE_MISSED`, `clock1: PASS`,
+`clock2: DEADLINE_MISSED` with a `RE_PRESENT_CHEQUE` recoveryPath gated on the same
+2026-10-02 date, in every case — see `samples/demo-case/facts.json`.
+
+Not live-verified against Gemini itself: the same free-tier daily cap M3-T5's and M4-T1's
+footnotes already documented as exhausted today made spending one of the remaining calls on
+this, rather than on demo prep itself, the wrong trade. The document uses the identical
+labelled-field convention (`Cheque No.:`, `Cheque Date:`, `Amount:`, `Drawee Bank:`,
+`Branch:`, `Presented on:`, `Memo Date:`, `Reason for Return:`) that scored ~0.99 confidence
+on all eight fields for `m3-t1-test-dishonour-memo.pdf`, so this is expected, not assumed, to
+extract cleanly — but that specific claim needs a live run to fully close out before the
+recording, not just this footnote.
 
 **M4 exit: this is the build we record if Sunday goes wrong.** Tag `m4-demoable`.
 The notice and the synopsis are both must-have; the dashboard and its seed data are not —
