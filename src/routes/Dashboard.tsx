@@ -7,7 +7,7 @@ import deadlineMissed from '../../packages/rules/fixtures/deadline-missed.json'
 import needsReview from '../../packages/rules/fixtures/needs-review.json'
 import { listCases } from '../lib/cases'
 import { deadlineActionLabel, getNextDeadline, getRecoveryHeadline, type NextDeadline } from '../lib/deadlines'
-import { formatRupees } from '../lib/format'
+import { formatDate, formatRupees } from '../lib/format'
 import '../styles/clockboard.css' // reuses .status-badge's overall-status colour map
 import '../styles/dashboard.css'
 
@@ -150,13 +150,18 @@ export function Dashboard() {
     <section>
       <div className="dashboard-heading">
         <h1>Dashboard</h1>
-        <input
-          type="search"
-          className="dashboard-search"
-          placeholder="Search by cheque number or party name"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+        <div className="dashboard-search-wrap">
+          <span className="dashboard-search-icon" aria-hidden="true">
+            🔍
+          </span>
+          <input
+            type="search"
+            className="dashboard-search"
+            placeholder="Search by cheque number or party name"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
       </div>
       {error && <p className="case-form__error">{error}</p>}
       {hasSampleData && <p className="dashboard-sample-banner">Sample data. Not real cases.</p>}
@@ -217,14 +222,20 @@ export function Dashboard() {
                     className="dashboard-chip"
                     data-status={c.board.overallStatus}
                   >
-                    <span className="dashboard-chip__number">#{c.board.facts.chequeNumber}</span>
-                    <span className="dashboard-chip__amount">{formatRupees(c.board.facts.amountInPaise)}</span>
-                    <span className="status-badge dashboard-chip__status" data-overall-status={c.board.overallStatus}>
-                      {OVERALL_STATUS_LABEL[c.board.overallStatus]}
-                    </span>
-                    <span className="dashboard-chip__days" data-missed={c.deadline?.isMissed || undefined}>
-                      {c.deadline ? formatDayCount(c.deadline) : OVERALL_STATUS_LABEL[c.board.overallStatus]}
-                    </span>
+                    <div className="dashboard-chip__main">
+                      <span className="dashboard-chip__number">#{c.board.facts.chequeNumber}</span>
+                      <span className="dashboard-chip__amount">{formatRupees(c.board.facts.amountInPaise)}</span>
+                      <span className="status-badge dashboard-chip__status" data-overall-status={c.board.overallStatus}>
+                        {OVERALL_STATUS_LABEL[c.board.overallStatus]}
+                      </span>
+                      <span className="dashboard-chip__days" data-missed={c.deadline?.isMissed || undefined}>
+                        {c.deadline ? formatDayCount(c.deadline) : OVERALL_STATUS_LABEL[c.board.overallStatus]}
+                      </span>
+                    </div>
+                    <div className="dashboard-chip__sub">
+                      <span className="dashboard-chip__payee">Payable to {c.board.facts.payeeName}</span>
+                      <span className="dashboard-chip__date">Cheque dated {formatDate(c.board.facts.chequeDate)}</span>
+                    </div>
                   </Link>
                 ))}
               </div>

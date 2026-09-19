@@ -3,10 +3,15 @@
   flex-direction: column;
   gap: 16px;
   max-width: 720px;
+  margin: 0 auto;
 }
 
-.case-detail__links {
-  margin-top: 16px;
+.case-detail__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  max-width: 720px;
+  margin: 20px auto 0;
 }
 
 .case-detail__breadcrumb {
@@ -26,8 +31,12 @@
 .case-detail__title {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 12px;
   flex-wrap: wrap;
+  max-width: 720px;
+  margin: 0 auto;
+  text-align: center;
 }
 
 .case-detail__title h1 {
@@ -35,16 +44,20 @@
 }
 
 .case-detail__meta {
-  margin: 8px 0 0;
+  margin: 8px auto 0;
+  max-width: 720px;
   font-family: var(--mono);
   font-size: 13px;
   color: var(--ink-soft);
+  text-align: center;
 }
 
 .case-detail__disclaimer {
-  margin: 4px 0 24px;
+  margin: 4px auto 24px;
+  max-width: 720px;
   font-size: 13px;
   color: var(--ink-faint);
+  text-align: center;
 }
 
 .clock-board__header {

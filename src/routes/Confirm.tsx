@@ -105,10 +105,17 @@ export function Confirm() {
     return (
       <section>
         <h1>Confirm extracted details</h1>
-        <p>
-          No document to confirm. <Link to="/new/upload">Upload one</Link> or{' '}
-          <Link to="/new">enter details manually</Link> instead.
-        </p>
+        <div className="route-switch">
+          <p>No document to confirm.</p>
+          <div className="route-switch__actions">
+            <Link to="/new/upload" className="btn btn--secondary">
+              Upload one
+            </Link>
+            <Link to="/new" className="btn btn--secondary">
+              Enter manually
+            </Link>
+          </div>
+        </div>
       </section>
     )
   }
@@ -130,9 +137,14 @@ export function Confirm() {
           <p className="case-form__error" role="alert">
             {status.message}
           </p>
-          <p>
-            You can still <Link to="/new">enter this case's details manually</Link>.
-          </p>
+          <div className="route-switch">
+            <p>You can still enter this case's details by hand.</p>
+            <div className="route-switch__actions">
+              <Link to="/new" className="btn btn--secondary">
+                Enter manually
+              </Link>
+            </div>
+          </div>
         </>
       )}
 

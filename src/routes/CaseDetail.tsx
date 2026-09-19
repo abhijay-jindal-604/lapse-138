@@ -88,16 +88,19 @@ export function CaseDetail() {
       </p>
 
       {fixture ? <ClockBoard board={board} /> : <DateTravel board={board} />}
-      <p className="case-detail__links">
-        <Link to={`/case/${caseId}/notice`}>View draft notice</Link>
-        {' · '}
-        <Link to={`/case/${caseId}/synopsis`}>View draft synopsis</Link>
-      </p>
-      {getReminderEvents(board).length > 0 && (
-        <button type="button" className="case-form__submit" onClick={() => downloadICS(board)}>
-          Download reminders (.ics)
-        </button>
-      )}
+      <div className="case-detail__actions">
+        <Link to={`/case/${caseId}/notice`} className="btn btn--secondary">
+          View draft notice
+        </Link>
+        <Link to={`/case/${caseId}/synopsis`} className="btn btn--secondary">
+          View draft synopsis
+        </Link>
+        {getReminderEvents(board).length > 0 && (
+          <button type="button" className="btn btn--primary" onClick={() => downloadICS(board)}>
+            Download reminders (.ics)
+          </button>
+        )}
+      </div>
     </section>
   )
 }

@@ -24,9 +24,14 @@ export function NewCase() {
   return (
     <section>
       <h1>New case</h1>
-      <p>
-        Have a dishonour memo or cheque image? <Link to="/new/upload">Upload it</Link> instead.
-      </p>
+      <div className="route-switch route-switch--feature">
+        <p>Have a dishonour memo or cheque image? We can read the particulars off it.</p>
+        <div className="route-switch__actions">
+          <Link to="/new/upload" className="btn btn--primary">
+            Upload document
+          </Link>
+        </div>
+      </div>
       {error && <p className="case-form__error">{error}</p>}
       <CaseForm onSubmit={handleSubmit} />
     </section>

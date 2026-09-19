@@ -10,31 +10,26 @@ export const DISCLAIMER_TEXT =
 export function Layout() {
   return (
     <div className="app-shell">
-      <aside className="app-sidebar">
-        <NavLink to="/" className="app-sidebar__brand">
-          <span className="app-sidebar__brand-name">Lapse</span>
-          <span className="app-sidebar__brand-tag">§138 deadline calculator</span>
+      <header className="app-header">
+        <NavLink to="/" className="app-header__brand">
+          <span className="app-header__brand-name">Lapse</span>
+          <span className="app-header__brand-tag">§138 deadline calculator</span>
         </NavLink>
 
-        <NavLink to="/new" className="app-sidebar__new">
+        <NavLink to="/new" className="app-header__new">
           + New case
         </NavLink>
-        <NavLink
-          to="/"
-          end
-          className={({ isActive }) => `app-sidebar__link${isActive ? ' active' : ''}`}
-        >
-          Dashboard
-        </NavLink>
-
-        <p className="app-sidebar__disclaimer" role="note">
-          {DISCLAIMER_TEXT}
-        </p>
-      </aside>
+      </header>
 
       <main className="app-main">
         <Outlet />
       </main>
+
+      <footer className="app-footer">
+        <p className="app-footer__disclaimer" role="note">
+          {DISCLAIMER_TEXT}
+        </p>
+      </footer>
     </div>
   )
 }

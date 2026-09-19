@@ -3,6 +3,7 @@
   flex-direction: column;
   gap: 12px;
   max-width: 480px;
+  margin: 0 auto;
 }
 
 .upload__dropzone {
