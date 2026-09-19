@@ -28,7 +28,7 @@ const DISHONOUR_REASONS: { value: DishonourReason; label: string }[] = [
   { value: 'other', label: 'Other' },
 ]
 
-type Draft = {
+export type Draft = {
   payeeName: string
   payeeAddress: string
   drawerName: string
@@ -61,7 +61,7 @@ type Draft = {
   accusedMessagingDetails: string
 }
 
-const EMPTY_DRAFT: Draft = {
+export const EMPTY_DRAFT: Draft = {
   payeeName: '',
   payeeAddress: '',
   drawerName: '',
@@ -131,11 +131,56 @@ function draftToCaseFacts(draft: Draft): CaseFacts {
   }
 }
 
-export function CaseForm({ onSubmit }: { onSubmit: (facts: CaseFacts) => void }) {
-  const [draft, setDraft] = useState<Draft>(EMPTY_DRAFT)
+// The eight fields a document can supply (LEGAL_RULES.md §2) — the only ones
+// M3-T4's confirmation screen can attach extraction metadata to.
+export type ExtractableFieldKey =
+  | 'chequeNumber'
+  | 'chequeDate'
+  | 'amountInRupees'
+  | 'drawerBankName'
+  | 'drawerBankBranch'
+  | 'presentationDate'
+  | 'dishonourMemoDate'
+  | 'dishonourReason'
+
+export type FieldMeta = Partial<
+  Record<ExtractableFieldKey, { confidence: number; sourceQuote: string }>
+>
+
+const LOW_CONFIDENCE_THRESHOLD = 0.7
+
+export function CaseForm({
+  onSubmit,
+  initialDraft,
+  fieldMeta,
+}: {
+  onSubmit: (facts: CaseFacts) => void
+  initialDraft?: Draft
+  fieldMeta?: FieldMeta
+}) {
+  const [draft, setDraft] = useState<Draft>(initialDraft ?? EMPTY_DRAFT)
 
   function set<K extends keyof Draft>(field: K, value: Draft[K]) {
     setDraft((prev) => ({ ...prev, [field]: value }))
+  }
+
+  // M3-T4: an extracted field is editable like any other, but wears its
+  // provenance — hover shows the document text it came from, and a low-
+  // confidence read is flagged rather than presented as fact.
+  function extractedWrapperProps(key: ExtractableFieldKey) {
+    const meta = fieldMeta?.[key]
+    if (!meta) return { className: 'form-field' }
+    const lowConfidence = meta.confidence < LOW_CONFIDENCE_THRESHOLD
+    return {
+      className: `form-field form-field--extracted${lowConfidence ? ' form-field--low-confidence' : ''}`,
+      title: `Extracted from the document: "${meta.sourceQuote}"`,
+    }
+  }
+
+  function ExtractionFlag({ fieldKey }: { fieldKey: ExtractableFieldKey }) {
+    const meta = fieldMeta?.[fieldKey]
+    if (!meta || meta.confidence >= LOW_CONFIDENCE_THRESHOLD) return null
+    return <span className="form-field__flag">Low confidence — verify against the document</span>
   }
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -193,7 +238,7 @@ export function CaseForm({ onSubmit }: { onSubmit: (facts: CaseFacts) => void })
 
         <h3>The cheque</h3>
         <div className="form-row">
-          <div className="form-field">
+          <div {...extractedWrapperProps('chequeNumber')}>
             <label htmlFor="chequeNumber">Cheque number</label>
             <input
               id="chequeNumber"
@@ -201,8 +246,9 @@ export function CaseForm({ onSubmit }: { onSubmit: (facts: CaseFacts) => void })
               value={draft.chequeNumber}
               onChange={(e) => set('chequeNumber', e.target.value)}
             />
+            <ExtractionFlag fieldKey="chequeNumber" />
           </div>
-          <div className="form-field">
+          <div {...extractedWrapperProps('chequeDate')}>
             <label htmlFor="chequeDate">Cheque date</label>
             <input
               id="chequeDate"
@@ -211,10 +257,11 @@ export function CaseForm({ onSubmit }: { onSubmit: (facts: CaseFacts) => void })
               value={draft.chequeDate}
               onChange={(e) => set('chequeDate', e.target.value)}
             />
+            <ExtractionFlag fieldKey="chequeDate" />
           </div>
         </div>
         <div className="form-row">
-          <div className="form-field">
+          <div {...extractedWrapperProps('amountInRupees')}>
             <label htmlFor="amountInRupees">Amount (₹)</label>
             <input
               id="amountInRupees"
@@ -225,8 +272,9 @@ export function CaseForm({ onSubmit }: { onSubmit: (facts: CaseFacts) => void })
               value={draft.amountInRupees}
               onChange={(e) => set('amountInRupees', e.target.value)}
             />
+            <ExtractionFlag fieldKey="amountInRupees" />
           </div>
-          <div className="form-field">
+          <div {...extractedWrapperProps('drawerBankName')}>
             <label htmlFor="drawerBankName">Drawer's bank</label>
             <input
               id="drawerBankName"
@@ -234,10 +282,11 @@ export function CaseForm({ onSubmit }: { onSubmit: (facts: CaseFacts) => void })
               value={draft.drawerBankName}
               onChange={(e) => set('drawerBankName', e.target.value)}
             />
+            <ExtractionFlag fieldKey="drawerBankName" />
           </div>
         </div>
         <div className="form-row">
-          <div className="form-field">
+          <div {...extractedWrapperProps('drawerBankBranch')}>
             <label htmlFor="drawerBankBranch">Drawer's bank branch</label>
             <input
               id="drawerBankBranch"
@@ -245,6 +294,7 @@ export function CaseForm({ onSubmit }: { onSubmit: (facts: CaseFacts) => void })
               value={draft.drawerBankBranch}
               onChange={(e) => set('drawerBankBranch', e.target.value)}
             />
+            <ExtractionFlag fieldKey="drawerBankBranch" />
           </div>
           <div className="form-field">
             <label htmlFor="payeeBankBranch">
@@ -261,7 +311,7 @@ export function CaseForm({ onSubmit }: { onSubmit: (facts: CaseFacts) => void })
 
         <h3>Presentation &amp; dishonour</h3>
         <div className="form-row">
-          <div className="form-field">
+          <div {...extractedWrapperProps('presentationDate')}>
             <label htmlFor="presentationDate">
               Presentation date <span className="form-field__hint">(leave blank if not yet presented)</span>
             </label>
@@ -271,8 +321,9 @@ export function CaseForm({ onSubmit }: { onSubmit: (facts: CaseFacts) => void })
               value={draft.presentationDate}
               onChange={(e) => set('presentationDate', e.target.value)}
             />
+            <ExtractionFlag fieldKey="presentationDate" />
           </div>
-          <div className="form-field">
+          <div {...extractedWrapperProps('dishonourMemoDate')}>
             <label htmlFor="dishonourMemoDate">Dishonour memo date</label>
             <input
               id="dishonourMemoDate"
@@ -280,9 +331,10 @@ export function CaseForm({ onSubmit }: { onSubmit: (facts: CaseFacts) => void })
               value={draft.dishonourMemoDate}
               onChange={(e) => set('dishonourMemoDate', e.target.value)}
             />
+            <ExtractionFlag fieldKey="dishonourMemoDate" />
           </div>
         </div>
-        <div className="form-field">
+        <div {...extractedWrapperProps('dishonourReason')}>
           <label htmlFor="dishonourReason">Dishonour reason</label>
           <select
             id="dishonourReason"
@@ -299,6 +351,7 @@ export function CaseForm({ onSubmit }: { onSubmit: (facts: CaseFacts) => void })
               </option>
             ))}
           </select>
+          <ExtractionFlag fieldKey="dishonourReason" />
         </div>
 
         <h3>Notice &amp; outcome</h3>

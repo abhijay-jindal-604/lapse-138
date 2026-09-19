@@ -1,5 +1,6 @@
 import { type ClientSchema, a, defineData } from '@aws-amplify/backend';
 import { draftNotice } from '../functions/draftNotice/resource';
+import { extractFacts } from '../functions/extractFacts/resource';
 
 // TASKS.md M0-T5 note: publicApiKey now, allow.owner() added in M5-T1 — keep both
 // rules together at that point, don't replace this one, since re-authing every model
@@ -37,7 +38,34 @@ const schema = a.schema({
     .returns(a.string())
     .authorization((allow) => [allow.publicApiKey()])
     .handler(a.handler.function(draftNotice)),
-}).authorization((allow) => [allow.resource(draftNotice).to(['query'])]);
+
+  // M4-T1: the Gemini-backed §138 demand notice path, same Lambda as
+  // synopsisForCase (routed by event.info.fieldName in handler.ts) but its
+  // own operation — it recomputes the clock board from the case's stored
+  // `facts` via computeClockBoard on every call rather than trusting the
+  // stored `result` snapshot (draft.ts), unlike synopsisForCase.
+  draftNoticeForCase: a
+    .query()
+    .arguments({ caseId: a.id().required() })
+    .returns(a.string())
+    .authorization((allow) => [allow.publicApiKey()])
+    .handler(a.handler.function(draftNotice)),
+
+  // M3-T1: Gemini-backed extraction from an already-uploaded document (S3 key
+  // from M3-T3's Upload component). Returns ExtractedFacts (see
+  // amplify/functions/extractFacts/types.ts) — only the eight document-
+  // extractable CaseFacts fields, never the human-only or affidavit-boundary
+  // ones (LEGAL_RULES.md §2, §7).
+  extractFacts: a
+    .query()
+    .arguments({ documentKey: a.string().required() })
+    .returns(a.json())
+    .authorization((allow) => [allow.publicApiKey()])
+    .handler(a.handler.function(extractFacts)),
+}).authorization((allow) => [
+  allow.resource(draftNotice).to(['query']),
+  allow.resource(extractFacts).to(['query']),
+]);
 
 export type Schema = ClientSchema<typeof schema>;
 

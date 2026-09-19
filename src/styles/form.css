@@ -107,6 +107,48 @@
   color: var(--text-h);
 }
 
+/* M3-T4: extracted fields carry their provenance — hover shows the source
+   quote (native title attribute) and low-confidence reads are flagged.
+   Declared after the generic .form-field input rule above so it wins the
+   cascade at equal specificity — placing it earlier left these dead. */
+.form-field--extracted input,
+.form-field--extracted select {
+  border-color: var(--extracted-border, #4a7dbd);
+  background: var(--extracted-bg, #f2f6fc);
+  cursor: help;
+}
+
+.form-field--low-confidence input,
+.form-field--low-confidence select {
+  border-color: var(--low-confidence-border, #c9a227);
+  background: var(--low-confidence-bg, #fffaf0);
+}
+
+@media (prefers-color-scheme: dark) {
+  .form-field--extracted input,
+  .form-field--extracted select {
+    --extracted-border: #4d7bb0;
+    --extracted-bg: #131d29;
+  }
+  .form-field--low-confidence input,
+  .form-field--low-confidence select {
+    --low-confidence-border: #7a611c;
+    --low-confidence-bg: #241f0d;
+  }
+}
+
+.form-field__flag {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #8a6d00;
+}
+
+@media (prefers-color-scheme: dark) {
+  .form-field__flag {
+    color: #e8d385;
+  }
+}
+
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;

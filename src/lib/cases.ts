@@ -4,7 +4,7 @@ import type { Schema } from '../../amplify/data/resource'
 
 const client = generateClient<Schema>()
 
-export async function saveCase(board: ClockBoard): Promise<string> {
+export async function saveCase(board: ClockBoard, documentKey?: string): Promise<string> {
   const { data, errors } = await client.models.Case.create({
     id: board.caseId,
     title: `Cheque #${board.facts.chequeNumber} — ${board.facts.drawerName}`,
@@ -16,6 +16,7 @@ export async function saveCase(board: ClockBoard): Promise<string> {
     result: JSON.stringify(board),
     computedAt: board.computedAt,
     isSample: false,
+    documentKey: documentKey ?? null,
   })
   if (errors || !data) {
     throw new Error(errors?.[0]?.message ?? 'Failed to save case')
@@ -63,6 +64,14 @@ export async function fetchSynopsis(caseId: string): Promise<string> {
   const { data, errors } = await client.queries.synopsisForCase({ caseId })
   if (errors || data == null) {
     throw new Error(errors?.[0]?.message ?? 'Failed to generate synopsis')
+  }
+  return data
+}
+
+export async function fetchDraftNotice(caseId: string): Promise<string> {
+  const { data, errors } = await client.queries.draftNoticeForCase({ caseId })
+  if (errors || data == null) {
+    throw new Error(errors?.[0]?.message ?? 'Failed to generate draft notice')
   }
   return data
 }

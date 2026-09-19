@@ -1,0 +1,114 @@
+{
+  "caseId": "fixture-advisory-window",
+  "computedAt": "2026-09-17",
+  "today": "2026-09-17",
+  "facts": {
+    "payeeName": "Anand Traders",
+    "payeeAddress": "14 MG Road, Pune 411001",
+    "drawerName": "Suresh Kumar",
+    "drawerAddress": "22 Church Street, Pune 411002",
+    "chequeNumber": "004521",
+    "chequeDate": "2026-06-01",
+    "amountInPaise": 50000000,
+    "drawerBankName": "Sunrise Cooperative Bank",
+    "drawerBankBranch": "Church Street Branch",
+    "payeeBankBranch": "MG Road Branch",
+    "presentationDate": "2026-06-05",
+    "dishonourMemoDate": null,
+    "bankInfoReceivedDate": "2026-08-15",
+    "dishonourReason": "insufficient_funds",
+    "presentationCount": 1,
+    "noticeSentDate": "2026-09-01",
+    "noticeReceivedDate": null,
+    "noticeServiceMode": "unknown",
+    "paymentStatus": "none",
+    "paymentDate": null,
+    "complaintFiledDate": null,
+    "legallyEnforceableDebt": "yes",
+    "interestClaimedInPaise": null,
+    "accusedEmail": null,
+    "accusedMobile": null,
+    "accusedMessagingDetails": null
+  },
+  "overallStatus": "NEEDS_REVIEW",
+  "provisional": false,
+  "gateA": {
+    "status": "PROCEED",
+    "reasoning": [
+      {
+        "rule": "The dishonour reason must fall within §138's own words or settled case law",
+        "source": "NI Act §138 Explanation",
+        "triggerDate": null,
+        "countingRule": "n/a",
+        "resultDate": null,
+        "plainEnglish": "The debt is confirmed as legally enforceable, and the bank's reason (insufficient funds) is squarely within §138's own text. Proceed."
+      }
+    ]
+  },
+  "clock1": {
+    "clock": "presentation_validity",
+    "status": "PASS",
+    "lastValidPresentationDate": "2026-09-01",
+    "statutorySixMonthDate": "2026-12-01",
+    "reasoning": [
+      {
+        "rule": "The cheque must be presented within its period of validity",
+        "source": "NI Act §138 proviso (a); RBI directive effective 01 Apr 2012 (validity reduced from 6 months to 3)",
+        "triggerDate": "2026-06-01",
+        "countingRule": "Exclude the trigger day; add 3 calendar months, clamped to month-end. The statute allows 6 months or the period of validity, whichever is earlier — since 01 Apr 2012 the RBI has fixed validity at 3 months, so 3 months governs over the statutory 6.",
+        "resultDate": "2026-09-01",
+        "plainEnglish": "The cheque is dated 2026-06-01 and stays valid for presentation until 2026-09-01. It was presented on 2026-06-05, within that window."
+      }
+    ]
+  },
+  "clock2": {
+    "clock": "notice_window",
+    "status": "PASS",
+    "noticeDeadline": "2026-09-14",
+    "assumption": null,
+    "reasoning": [
+      {
+        "rule": "A demand notice must be sent within 30 days of learning of the dishonour",
+        "source": "NI Act §138 proviso (b); day-counting per §9 General Clauses Act 1897, applied in Econ Antri Ltd v. Rom Industries Ltd (2014) 11 SCC 769",
+        "triggerDate": "2026-08-15",
+        "countingRule": "Exclude the trigger day; deadline = trigger + 30 days",
+        "resultDate": "2026-09-14",
+        "plainEnglish": "You learned of the dishonour on 2026-08-15 and had until 2026-09-14 to send notice. It was sent on 2026-09-01, in time."
+      }
+    ]
+  },
+  "clock3": {
+    "clock": "payment_window",
+    "status": "NEEDS_REVIEW",
+    "reviewReason": "pending_service_confirmation",
+    "paymentWindowEnds": {
+      "basis": "advisory",
+      "earliest": "2026-09-19",
+      "latest": "2026-09-23",
+      "note": "Typical postal transit, not a legal deadline — confirm your actual tracking receipt."
+    },
+    "causeOfActionDate": {
+      "basis": "advisory",
+      "earliest": "2026-09-20",
+      "latest": "2026-09-24",
+      "note": "Typical postal transit, not a legal deadline — confirm your actual tracking receipt."
+    },
+    "earliestSafeFilingDate": {
+      "basis": "advisory",
+      "earliest": "2026-09-24",
+      "latest": "2026-09-24",
+      "note": "The latest the cause of action could accrue under this estimate — filing before this risks a premature complaint if actual service landed later in the range."
+    },
+    "reasoning": [
+      {
+        "rule": "A notice sent but not yet confirmed received gets an advisory estimate, never an asserted date",
+        "source": "§27 General Clauses Act 1897 (presumption of service by post in the ordinary course)",
+        "triggerDate": "2026-09-01",
+        "countingRule": "Advisory only: presumed postal transit of 3-7 days from dispatch, not a computed legal deadline",
+        "resultDate": null,
+        "plainEnglish": "The notice was sent on 2026-09-01 but there is no confirmed receipt or refusal date yet. Based on typical postal transit (3 to 7 days), the 15-day payment window would run out somewhere between 2026-09-19 and 2026-09-23 — this is an advisory estimate, not a computed deadline. The moment you confirm the actual receipt (or refusal) date, every figure here is replaced by a computed one."
+      }
+    ]
+  },
+  "clock4": null
+}

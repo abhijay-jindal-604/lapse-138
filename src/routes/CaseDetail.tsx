@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import type { ClockBoard as ClockBoardData } from '@lapse/rules'
 import actNow from '../../packages/rules/fixtures/act-now.json'
+import advisoryWindow from '../../packages/rules/fixtures/advisory-window.json'
 import deadlineMissed from '../../packages/rules/fixtures/deadline-missed.json'
 import needsReview from '../../packages/rules/fixtures/needs-review.json'
 import { ClockBoard } from '../components/ClockBoard'
@@ -15,6 +16,7 @@ const FIXTURES: Record<string, ClockBoardData> = {
   'act-now': actNow as ClockBoardData,
   'deadline-missed': deadlineMissed as ClockBoardData,
   'needs-review': needsReview as ClockBoardData,
+  'advisory-window': advisoryWindow as ClockBoardData,
 }
 
 export function CaseDetail() {
@@ -56,6 +58,8 @@ export function CaseDetail() {
       <h1>Case {board.facts.chequeNumber}</h1>
       {fixture ? <ClockBoard board={board} /> : <DateTravel board={board} />}
       <p className="case-detail__links">
+        <Link to={`/case/${caseId}/notice`}>View draft notice</Link>
+        {' · '}
         <Link to={`/case/${caseId}/synopsis`}>View draft synopsis</Link>
       </p>
       {getReminderEvents(board).length > 0 && (

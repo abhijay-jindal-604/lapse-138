@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { ClockBoard, OverallStatus } from '@lapse/rules'
 import actNow from '../../packages/rules/fixtures/act-now.json'
+import advisoryWindow from '../../packages/rules/fixtures/advisory-window.json'
 import deadlineMissed from '../../packages/rules/fixtures/deadline-missed.json'
 import needsReview from '../../packages/rules/fixtures/needs-review.json'
 import { listCases } from '../lib/cases'
@@ -41,6 +42,12 @@ const FIXTURE_ENTRIES: DashboardEntry[] = [
     isSample: false,
   },
   { id: 'needs-review', title: titleFor(needsReview as ClockBoard), board: needsReview as ClockBoard, isSample: false },
+  {
+    id: 'advisory-window',
+    title: titleFor(advisoryWindow as ClockBoard),
+    board: advisoryWindow as ClockBoard,
+    isSample: false,
+  },
 ]
 
 function formatDayCount(deadline: NextDeadline): string {
