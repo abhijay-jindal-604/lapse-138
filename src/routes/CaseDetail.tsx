@@ -71,9 +71,6 @@ export function CaseDetail() {
       <p className="case-detail__breadcrumb">
         <Link to="/">← Dashboard</Link>
       </p>
-      <p className="case-detail__eyebrow">
-        {facts.drawerName} / Cheque #{facts.chequeNumber}
-      </p>
       <div className="case-detail__title">
         <h1>
           {facts.drawerName} — #{facts.chequeNumber}
