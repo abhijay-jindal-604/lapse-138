@@ -1,15 +1,21 @@
+@import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
+
 :root {
   --text: #6b6375;
-  --text-h: #08060d;
+  --text-muted: #9b95a1;
+  --text-h: #0b0810;
   --bg: #fff;
   --border: #e5e4e7;
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
+  --sidebar-bg: #f7f6f8;
+  --ink: #0b0810;
 
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
+  --sans: 'Public Sans', system-ui, 'Segoe UI', Roboto, sans-serif;
+  --heading: 'Public Sans', system-ui, 'Segoe UI', Roboto, sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, Consolas, monospace;
+
+  font: 16px/145% var(--sans);
+  letter-spacing: normal;
   color-scheme: light dark;
   color: var(--text);
   background: var(--bg);
@@ -17,18 +23,17 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --text: #9ca3af;
+    --text-muted: #7d8290;
     --text-h: #f3f4f6;
     --bg: #16171d;
     --border: #2e303a;
+    --sidebar-bg: #1b1c22;
+    --ink: #f3f4f6;
   }
 }
 
@@ -37,17 +42,14 @@ body {
 }
 
 #root {
-  max-width: 1024px;
-  margin: 0 auto;
   min-height: 100svh;
   box-sizing: border-box;
-  padding: 0 24px;
 }
 
 h1,
 h2 {
   font-family: var(--heading);
-  font-weight: 500;
+  font-weight: 600;
   color: var(--text-h);
 }
 

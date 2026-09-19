@@ -6,19 +6,56 @@ import type {
   ClockBoard as ClockBoardData,
   DateEstimate,
   GateAResult,
-  OverallStatus,
   RecoveryPath,
 } from '@lapse/rules'
 import { ReasoningChain } from './ReasoningChain'
 import '../styles/clockboard.css'
 
-const OVERALL_STATUS_LABEL: Record<OverallStatus, string> = {
+// Short, human badge text per clock status — distinct from the raw status
+// literal (which is why this isn't just `status.replace(/_/g, ' ')`: e.g.
+// Clock2's 'live' should read "Notice pending", not "live").
+const CLOCK_STATUS_LABEL: Record<string, string> = {
+  PROCEED: 'Cleared',
+  PROCEED_WITH_NOTE: 'Cleared — with note',
   NOT_A_138_CASE: 'Not a §138 case',
-  RESOLVED: 'Resolved — no offence',
   NEEDS_REVIEW: 'Needs review',
+  ACT_NOW: 'Present now',
+  PASS: 'Cleared',
+  live: 'Pending',
   DEADLINE_MISSED: 'Deadline missed',
-  ACT_NOW: 'Act now',
-  ON_TRACK: 'On track',
+  RESOLVED: 'Resolved',
+  not_yet_open: 'Not yet open',
+  PREMATURE: 'Premature — needs review',
+  BLOCKED: 'Blocked',
+}
+
+function ClockHead({ title, status }: { title: string; status: string }) {
+  return (
+    <div className="clock-card__head">
+      <h3>{title}</h3>
+      <span className="clock-card__badge">{CLOCK_STATUS_LABEL[status] ?? status.replace(/_/g, ' ')}</span>
+    </div>
+  )
+}
+
+function BlockedCard({ title, reason }: { title: string; reason: string }) {
+  return (
+    <section className="clock-card" data-clock-status="BLOCKED">
+      <ClockHead title={title} status="BLOCKED" />
+      <p className="clock-card__dates">{reason}</p>
+    </section>
+  )
+}
+
+// When Clock 2 or 4 misses its deadline with a re-presentation recovery path,
+// packages/rules leaves the downstream clocks uncomputed (there's nothing to
+// compute until re-presentation happens) rather than null-and-hidden — the UI
+// says so explicitly instead of the card just vanishing.
+function representationBlock(board: ClockBoardData): { deadline: string } | null {
+  if (board.clock2?.status === 'DEADLINE_MISSED' && board.clock2.recoveryPath.kind === 'RE_PRESENT_CHEQUE') {
+    return { deadline: board.clock2.recoveryPath.deadline }
+  }
+  return null
 }
 
 function formatDateEstimate(estimate: DateEstimate) {
@@ -73,8 +110,7 @@ function RecoveryPathCard({ path }: { path: RecoveryPath }) {
 function GateACard({ gateA }: { gateA: GateAResult }) {
   return (
     <section className="clock-card" data-clock-status={gateA.status}>
-      <h3>Gate A — is this a §138 case?</h3>
-      <p className="clock-card__status">{gateA.status.replace(/_/g, ' ')}</p>
+      <ClockHead title="Gate A — is this a §138 case?" status={gateA.status} />
       <ReasoningChain steps={gateA.reasoning} />
     </section>
   )
@@ -83,8 +119,7 @@ function GateACard({ gateA }: { gateA: GateAResult }) {
 function Clock1Card({ clock }: { clock: Clock1Result }) {
   return (
     <section className="clock-card" data-clock-status={clock.status}>
-      <h3>Clock 1 — Presentation validity</h3>
-      <p className="clock-card__status">{clock.status.replace(/_/g, ' ')}</p>
+      <ClockHead title="Clock 1 — Presentation validity" status={clock.status} />
       <p className="clock-card__dates">
         Valid until <strong>{clock.lastValidPresentationDate}</strong> (3-month RBI validity —
         the statute's own 6-month figure, {clock.statutorySixMonthDate}, does not govern since
@@ -98,8 +133,7 @@ function Clock1Card({ clock }: { clock: Clock1Result }) {
 function Clock2Card({ clock }: { clock: Clock2Result }) {
   return (
     <section className="clock-card" data-clock-status={clock.status}>
-      <h3>Clock 2 — Demand notice</h3>
-      <p className="clock-card__status">{clock.status.replace(/_/g, ' ')}</p>
+      <ClockHead title="Clock 2 — Demand notice" status={clock.status} />
       {clock.status === 'live' && (
         <p className="clock-card__dates">
           Send the notice by <strong>{clock.noticeDeadline}</strong> — {clock.daysRemaining} days
@@ -123,8 +157,7 @@ function Clock2Card({ clock }: { clock: Clock2Result }) {
 function Clock3Card({ clock }: { clock: Clock3Result }) {
   return (
     <section className="clock-card" data-clock-status={clock.status}>
-      <h3>Clock 3 — Payment window</h3>
-      <p className="clock-card__status">{clock.status.replace(/_/g, ' ')}</p>
+      <ClockHead title="Clock 3 — Payment window" status={clock.status} />
       {clock.status === 'NEEDS_REVIEW' && 'reviewReason' in clock && (
         <p className="clock-card__dates">
           {clock.reviewReason === 'part_payment' && 'Part payment recorded — needs review.'}
@@ -167,8 +200,7 @@ function Clock3Card({ clock }: { clock: Clock3Result }) {
 function Clock4Card({ clock }: { clock: Clock4Result }) {
   return (
     <section className="clock-card" data-clock-status={clock.status}>
-      <h3>Clock 4 — Complaint filing</h3>
-      <p className="clock-card__status">{clock.status.replace(/_/g, ' ')}</p>
+      <ClockHead title="Clock 4 — Complaint filing" status={clock.status} />
       <p className="clock-card__dates">
         Window {clock.filingWindowOpens} – <strong>{clock.filingDeadline}</strong>
         {clock.status === 'not_yet_open' && ` — opens in ${clock.opensInDays} days`}
@@ -183,18 +215,16 @@ function Clock4Card({ clock }: { clock: Clock4Result }) {
 }
 
 export function ClockBoard({ board }: { board: ClockBoardData }) {
+  const block = representationBlock(board)
   return (
     <div className="clock-board" data-overall-status={board.overallStatus}>
-      <header className="clock-board__header">
-        <span className="status-badge" data-overall-status={board.overallStatus}>
-          {OVERALL_STATUS_LABEL[board.overallStatus]}
-        </span>
-        {board.provisional && (
+      {board.provisional && (
+        <header className="clock-board__header">
           <span className="provisional-flag">
             Provisional — legally enforceable debt unconfirmed
           </span>
-        )}
-      </header>
+        </header>
+      )}
 
       <p className="clock-board__meta">
         Computed {board.computedAt} against today's date {board.today}
@@ -204,8 +234,21 @@ export function ClockBoard({ board }: { board: ClockBoardData }) {
         <GateACard gateA={board.gateA} />
         {board.clock1 && <Clock1Card clock={board.clock1} />}
         {board.clock2 && <Clock2Card clock={board.clock2} />}
-        {board.clock3 && <Clock3Card clock={board.clock3} />}
-        {board.clock4 && <Clock4Card clock={board.clock4} />}
+        {board.clock3 ? (
+          <Clock3Card clock={board.clock3} />
+        ) : (
+          block && (
+            <BlockedCard
+              title="Clock 3 — Payment window"
+              reason={`Depends on whether the cheque is re-presented before ${block.deadline}.`}
+            />
+          )
+        )}
+        {board.clock4 ? (
+          <Clock4Card clock={board.clock4} />
+        ) : (
+          block && <BlockedCard title="Clock 4 — Complaint filing" reason="Depends on whether the cheque is re-presented." />
+        )}
       </div>
     </div>
   )

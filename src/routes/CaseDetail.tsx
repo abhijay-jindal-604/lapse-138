@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import type { ClockBoard as ClockBoardData } from '@lapse/rules'
+import type { ClockBoard as ClockBoardData, OverallStatus } from '@lapse/rules'
 import actNow from '../../packages/rules/fixtures/act-now.json'
 import advisoryWindow from '../../packages/rules/fixtures/advisory-window.json'
 import deadlineMissed from '../../packages/rules/fixtures/deadline-missed.json'
@@ -8,7 +8,18 @@ import needsReview from '../../packages/rules/fixtures/needs-review.json'
 import { ClockBoard } from '../components/ClockBoard'
 import { DateTravel } from '../components/DateTravel'
 import { loadCase } from '../lib/cases'
+import { formatDate, formatRupees } from '../lib/format'
 import { downloadICS, getReminderEvents } from '../lib/ics'
+import '../styles/clockboard.css'
+
+const OVERALL_STATUS_LABEL: Record<OverallStatus, string> = {
+  NOT_A_138_CASE: 'Not a §138 case',
+  RESOLVED: 'Resolved',
+  NEEDS_REVIEW: 'Needs review',
+  DEADLINE_MISSED: 'Deadline missed',
+  ACT_NOW: 'Act now',
+  ON_TRACK: 'On track',
+}
 
 // The dashboard still links to these three fixture IDs (M1) alongside real, persisted
 // cases (M2-T2) — check the fixtures first since they're free, then fall back to Amplify.
@@ -53,9 +64,32 @@ export function CaseDetail() {
     )
   }
 
+  const { facts } = board
+
   return (
     <section>
-      <h1>Case {board.facts.chequeNumber}</h1>
+      <p className="case-detail__breadcrumb">
+        <Link to="/">← Dashboard</Link>
+      </p>
+      <p className="case-detail__eyebrow">
+        {facts.drawerName} / Cheque #{facts.chequeNumber}
+      </p>
+      <div className="case-detail__title">
+        <h1>
+          {facts.drawerName} — #{facts.chequeNumber}
+        </h1>
+        <span className="status-badge" data-overall-status={board.overallStatus}>
+          {OVERALL_STATUS_LABEL[board.overallStatus]}
+        </span>
+      </div>
+      <p className="case-detail__meta">
+        {formatRupees(facts.amountInPaise)} · dated {formatDate(facts.chequeDate)} · drawn on{' '}
+        {facts.drawerBankName}, {facts.drawerBankBranch} · payee {facts.payeeName}
+      </p>
+      <p className="case-detail__disclaimer">
+        Calculator only, not legal advice — a lawyer should verify these dates before you act or file.
+      </p>
+
       {fixture ? <ClockBoard board={board} /> : <DateTravel board={board} />}
       <p className="case-detail__links">
         <Link to={`/case/${caseId}/notice`}>View draft notice</Link>

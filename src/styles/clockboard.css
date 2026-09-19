@@ -9,6 +9,49 @@
   margin-top: 16px;
 }
 
+.case-detail__breadcrumb {
+  margin: 0 0 12px;
+  font-size: 13.5px;
+}
+
+.case-detail__breadcrumb a {
+  color: var(--text);
+  text-decoration: none;
+}
+
+.case-detail__breadcrumb a:hover {
+  text-decoration: underline;
+}
+
+.case-detail__eyebrow {
+  margin: 0 0 4px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.case-detail__title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.case-detail__title h1 {
+  margin: 0;
+}
+
+.case-detail__meta {
+  margin: 8px 0 0;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.case-detail__disclaimer {
+  margin: 4px 0 24px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
 .clock-board__header {
   display: flex;
   align-items: center;
@@ -23,11 +66,11 @@
 
 .status-badge {
   display: inline-block;
-  padding: 6px 14px;
-  border-radius: 999px;
+  padding: 3px 9px;
+  border-radius: 4px;
   font-weight: 700;
-  font-size: 15px;
-  letter-spacing: 0.01em;
+  font-size: 13px;
+  letter-spacing: normal;
   color: #fff;
   background: #6b6375;
 }
@@ -75,30 +118,37 @@
   gap: 8px;
 }
 
+.clock-card__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .clock-card h3 {
   margin: 0;
   font-size: 15px;
-}
-
-.clock-card__status {
-  margin: 0;
-  font-size: 13px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--clock-status-color, var(--text));
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
 }
 
-.clock-card__status::before {
+.clock-card h3::before {
   content: '';
   width: 8px;
   height: 8px;
   border-radius: 50%;
   background: var(--clock-status-color, var(--text));
   flex-shrink: 0;
+}
+
+.clock-card__badge {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 4px;
+  color: var(--clock-status-color, var(--text));
+  background: var(--clock-status-bg, rgba(107, 99, 117, 0.1));
 }
 
 .clock-card__dates {
@@ -116,29 +166,33 @@
 }
 
 /* Clock-level status colours — borrow the same palette as the overall badge.
-   Carried on a status dot + label colour (--clock-status-color), not a side-tab border. */
+   Carried on a status dot + soft badge (--clock-status-color/-bg), not a side-tab border. */
 .clock-card[data-clock-status='PASS'],
-.clock-card[data-clock-status='RESOLVED'] {
-  --clock-status-color: #1e7a4a;
-}
-.clock-card[data-clock-status='live'],
-.clock-card[data-clock-status='ACT_NOW'],
-.clock-card[data-clock-status='not_yet_open'] {
-  --clock-status-color: #b45f06;
-}
-.clock-card[data-clock-status='DEADLINE_MISSED'],
-.clock-card[data-clock-status='PREMATURE'] {
-  --clock-status-color: #a52121;
-}
-.clock-card[data-clock-status='NEEDS_REVIEW'] {
-  --clock-status-color: #9a7c0a;
-}
-.clock-card[data-clock-status='NOT_A_138_CASE'] {
-  --clock-status-color: #55535c;
-}
+.clock-card[data-clock-status='RESOLVED'],
 .clock-card[data-clock-status='PROCEED'],
 .clock-card[data-clock-status='PROCEED_WITH_NOTE'] {
   --clock-status-color: #1e7a4a;
+  --clock-status-bg: #eaf5ef;
+}
+.clock-card[data-clock-status='live'],
+.clock-card[data-clock-status='ACT_NOW'] {
+  --clock-status-color: #b45f06;
+  --clock-status-bg: #fdf3e8;
+}
+.clock-card[data-clock-status='DEADLINE_MISSED'] {
+  --clock-status-color: #a52121;
+  --clock-status-bg: #fdf0ef;
+}
+.clock-card[data-clock-status='NEEDS_REVIEW'],
+.clock-card[data-clock-status='PREMATURE'] {
+  --clock-status-color: #9a7c0a;
+  --clock-status-bg: #fdf8e7;
+}
+.clock-card[data-clock-status='NOT_A_138_CASE'],
+.clock-card[data-clock-status='not_yet_open'],
+.clock-card[data-clock-status='BLOCKED'] {
+  --clock-status-color: #6b6375;
+  --clock-status-bg: #f3f1f4;
 }
 
 .date-estimate--advisory {
@@ -148,22 +202,22 @@
 }
 
 .recovery-path {
-  border: 1px solid #2f6f8f;
-  border-radius: 6px;
-  padding: 12px 14px;
+  border: 1px solid #6b4fa0;
+  border-radius: 8px;
+  padding: 18px 20px;
   display: flex;
   flex-direction: column;
   gap: 4px;
-  background: rgba(47, 111, 143, 0.08);
+  background: #f6f2fb;
 }
 
 .recovery-path__label {
   margin: 0;
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #2f6f8f;
+  color: #6b4fa0;
 }
 
 .recovery-path__headline {
@@ -246,10 +300,10 @@
 }
 
 .reasoning-step__meta dt {
-  font-size: 11px;
+  font-size: 10.5px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--text);
+  color: var(--text-muted);
 }
 
 .reasoning-step__meta dd {

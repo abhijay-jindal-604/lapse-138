@@ -1,6 +1,25 @@
+.dashboard-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.dashboard-search {
+  font: inherit;
+  font-size: 14px;
+  min-width: 320px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text-h);
+}
+
 /* LEGAL_RULES.md §7: "On the dashboard: 'Sample data. Not real cases.' while sample
-   data is loaded." Reuses .disclaimer-banner's advisory colour language (layout.css)
-   since this is the same "heads up, don't rely on this" register — not an error. */
+   data is loaded." Uses the same "heads up, don't rely on this" advisory colour
+   language as form.css's low-confidence styling — not an error. */
 .dashboard-sample-banner {
   margin: 14px 0 0;
   padding: 8px 14px;
@@ -20,99 +39,198 @@
   }
 }
 
-.dashboard-list {
-  list-style: none;
-  margin: 20px 0 0;
-  padding: 0;
+.dashboard-filters {
   display: flex;
-  flex-direction: column;
-  gap: 10px;
-  max-width: 720px;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 20px 0 0;
 }
 
-.dashboard-row {
+.dashboard-filter {
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  padding: 7px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-h);
+  cursor: pointer;
+}
+
+.dashboard-filter:hover {
+  background: rgba(11, 8, 16, 0.04);
+}
+
+.dashboard-filter[aria-pressed='true'] {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--bg);
+}
+
+.dashboard-hero {
+  display: block;
+  margin: 20px 0 0;
+  padding: 16px 20px;
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--text-h);
+  border: 1px solid #6b6375;
+  background: rgba(107, 99, 117, 0.06);
+}
+
+.dashboard-hero[data-status='DEADLINE_MISSED'] {
+  border-color: #a52121;
+  background: #fdf0ef;
+}
+.dashboard-hero[data-status='ACT_NOW'] {
+  border-color: #b45f06;
+  background: #fdf3e8;
+}
+.dashboard-hero[data-status='NEEDS_REVIEW'] {
+  border-color: #9a7c0a;
+  background: #fdf8e7;
+}
+.dashboard-hero[data-status='ON_TRACK'] {
+  border-color: #1e7a4a;
+  background: #eaf5ef;
+}
+.dashboard-hero[data-status='RESOLVED'] {
+  border-color: #2f6f8f;
+  background: #eaf3f7;
+}
+
+.dashboard-hero__tags {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 14px 16px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
+  gap: 8px;
+  margin-bottom: 10px;
 }
 
-.dashboard-row__title {
-  flex: 1;
-  min-width: 0;
-  color: var(--text-h);
-  font-weight: 600;
-  text-decoration: none;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.dashboard-row__title:hover {
-  text-decoration: underline;
-}
-
-.dashboard-row__status {
-  flex-shrink: 0;
-  font-size: 12.5px;
-  padding: 4px 12px;
-}
-
-.dashboard-row__days {
-  flex-shrink: 0;
-  min-width: 8em;
-  text-align: right;
-  font-family: var(--mono);
-  font-size: 14px;
-  font-variant-numeric: tabular-nums;
-}
-
-.dashboard-row__days[data-missed] {
-  color: #a52121;
-  font-weight: 700;
-}
-
-/* The most urgent row (soonest/most-overdue deadline — always first, since
-   the list is sorted ascending) gets its own colour and a flag label, not
-   just its position, so it reads as urgent even out of list-order context
-   (e.g. a screenshot cropped to the top row). */
-.dashboard-row[data-most-urgent] {
-  border-color: #a52121;
-  border-width: 2px;
-  background: rgba(165, 33, 33, 0.06);
-}
-
-.dashboard-row__flag {
-  flex-shrink: 0;
-  background: #a52121;
-  color: #fff;
+.dashboard-hero__flag {
+  background: var(--ink);
+  color: var(--bg);
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  padding: 4px 8px;
+  letter-spacing: 0.055em;
+  padding: 3px 9px;
   border-radius: 4px;
 }
 
-@media (prefers-color-scheme: dark) {
-  .dashboard-row[data-most-urgent] {
-    background: rgba(255, 99, 99, 0.1);
-  }
+.dashboard-hero__title {
+  margin: 0;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.dashboard-hero__action {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.dashboard-groups {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.dashboard-group__header {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.dashboard-group__name {
+  font-weight: 600;
+  color: var(--text-h);
+  font-size: 15px;
+}
+
+.dashboard-group__meta {
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.dashboard-group__rows {
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-chip {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 4px;
+  text-decoration: none;
+  color: var(--text-h);
+  border-bottom: 1px solid var(--border);
+}
+
+.dashboard-group__rows .dashboard-chip:last-child {
+  border-bottom: none;
+}
+
+.dashboard-chip:hover {
+  background: rgba(11, 8, 16, 0.025);
+}
+
+.dashboard-chip__number {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--text-muted);
+  min-width: 5.5em;
+}
+
+.dashboard-chip__amount {
+  font-weight: 600;
+  font-size: 15px;
+  min-width: 6.5em;
+}
+
+.dashboard-chip__status {
+  padding: 3px 9px;
+  font-size: 12px;
+}
+
+.dashboard-chip__days {
+  margin-left: auto;
+  font-size: 13.5px;
+  font-weight: 600;
+  text-align: right;
+  color: var(--text-muted);
+}
+
+.dashboard-chip[data-status='DEADLINE_MISSED'] .dashboard-chip__days {
+  color: #a52121;
+}
+.dashboard-chip[data-status='ACT_NOW'] .dashboard-chip__days {
+  color: #b45f06;
+}
+.dashboard-chip[data-status='ON_TRACK'] .dashboard-chip__days {
+  color: #1e7a4a;
+}
+.dashboard-chip[data-status='NEEDS_REVIEW'] .dashboard-chip__days {
+  color: #9a7c0a;
 }
 
 @media (max-width: 640px) {
-  .dashboard-row {
+  .dashboard-search {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .dashboard-chip {
     flex-wrap: wrap;
   }
 
-  .dashboard-row__title {
-    flex-basis: 100%;
-    white-space: normal;
-  }
-
-  .dashboard-row__days {
+  .dashboard-chip__days {
+    margin-left: 0;
     text-align: left;
+    flex-basis: 100%;
   }
 }

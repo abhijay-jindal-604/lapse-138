@@ -15,8 +15,18 @@
 }
 
 .form-group h2 {
-  margin: 0;
+  margin: 0 0 4px;
   font-size: 17px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.form-group h2::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--group-border, var(--border));
 }
 
 .form-group__intro {
@@ -62,18 +72,15 @@
 }
 
 .form-warning {
-  margin: 0;
-  padding: 10px 12px;
-  border-radius: 6px;
+  margin: -8px 0 0;
   font-size: 13.5px;
   line-height: 145%;
-  background: rgba(0, 0, 0, 0.04);
-  border: 1px dashed var(--group-border, var(--border));
+  color: var(--warning-text, #7a2c22);
 }
 
 @media (prefers-color-scheme: dark) {
   .form-warning {
-    background: rgba(255, 255, 255, 0.05);
+    --warning-text: #e79c92;
   }
 }
 
