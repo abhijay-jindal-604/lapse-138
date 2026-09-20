@@ -1,24 +1,26 @@
-import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
 import type { CaseFacts } from '@lapse/rules'
-import { computeClockBoard, todayInIST } from '@lapse/rules'
+import { Link, useNavigate } from 'react-router-dom'
 import { CaseForm } from '../components/CaseForm'
-import { saveCase } from '../lib/cases'
+import { LinkConfirmDialog } from '../components/LinkConfirmDialog'
+import { useLinkConfirmFlow } from '../hooks/useLinkConfirmFlow'
 
 export function NewCase() {
   const navigate = useNavigate()
-  const [error, setError] = useState<string | null>(null)
+  const flow = useLinkConfirmFlow()
 
   async function handleSubmit(facts: CaseFacts) {
-    const caseId = crypto.randomUUID()
-    const board = computeClockBoard(facts, todayInIST(), caseId)
-    setError(null)
-    try {
-      const savedId = await saveCase(board)
-      navigate(`/case/${savedId}`)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save case')
-    }
+    const savedId = await flow.handleSubmit(facts)
+    if (savedId) navigate(`/case/${savedId}`)
+  }
+
+  async function handleConfirm(selectedCaseIds: string[]) {
+    const savedId = await flow.confirmLink(selectedCaseIds)
+    navigate(`/case/${savedId}`)
+  }
+
+  async function handleDecline() {
+    const savedId = await flow.declineLink()
+    navigate(`/case/${savedId}`)
   }
 
   return (
@@ -32,8 +34,12 @@ export function NewCase() {
           </Link>
         </div>
       </div>
-      {error && <p className="case-form__error">{error}</p>}
-      <CaseForm onSubmit={handleSubmit} />
+      {flow.saveError && <p className="case-form__error">{flow.saveError}</p>}
+      {flow.step === 'form' && <CaseForm onSubmit={handleSubmit} />}
+      {flow.step === 'confirming' && (
+        <LinkConfirmDialog matches={flow.matches} onConfirm={handleConfirm} onDecline={handleDecline} />
+      )}
+      {flow.step === 'saving' && <p role="status">Saving case…</p>}
     </section>
   )
 }

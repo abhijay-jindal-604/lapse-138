@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import type { CaseFacts } from '@lapse/rules'
-import { computeClockBoard, todayInIST } from '@lapse/rules'
 import type { ExtractedFacts } from '../../amplify/functions/extractFacts/types'
 import { CaseForm, EMPTY_DRAFT, type Draft, type FieldMeta } from '../components/CaseForm'
-import { saveCase } from '../lib/cases'
+import { LinkConfirmDialog } from '../components/LinkConfirmDialog'
+import { useLinkConfirmFlow } from '../hooks/useLinkConfirmFlow'
 import { extractFactsFromDocument } from '../lib/extraction'
 
 type Status =
@@ -66,7 +66,7 @@ export function Confirm() {
   const documentKey = (location.state as { documentKey?: string } | null)?.documentKey
   const navigate = useNavigate()
   const [status, setStatus] = useState<Status>({ kind: 'extracting' })
-  const [saveError, setSaveError] = useState<string | null>(null)
+  const flow = useLinkConfirmFlow(documentKey)
 
   useEffect(() => {
     if (!documentKey) return
@@ -90,15 +90,18 @@ export function Confirm() {
   }, [documentKey])
 
   async function handleSubmit(facts: CaseFacts) {
-    const caseId = crypto.randomUUID()
-    const board = computeClockBoard(facts, todayInIST(), caseId)
-    setSaveError(null)
-    try {
-      const savedId = await saveCase(board, documentKey)
-      navigate(`/case/${savedId}`)
-    } catch (err) {
-      setSaveError(err instanceof Error ? err.message : 'Failed to save case')
-    }
+    const savedId = await flow.handleSubmit(facts)
+    if (savedId) navigate(`/case/${savedId}`)
+  }
+
+  async function handleConfirm(selectedCaseIds: string[]) {
+    const savedId = await flow.confirmLink(selectedCaseIds)
+    navigate(`/case/${savedId}`)
+  }
+
+  async function handleDecline() {
+    const savedId = await flow.declineLink()
+    navigate(`/case/${savedId}`)
   }
 
   if (!documentKey) {
@@ -150,12 +153,18 @@ export function Confirm() {
 
       {status.kind === 'ready' && (
         <>
-          {saveError && <p className="case-form__error">{saveError}</p>}
-          <CaseForm
-            onSubmit={handleSubmit}
-            initialDraft={status.initialDraft}
-            fieldMeta={status.fieldMeta}
-          />
+          {flow.saveError && <p className="case-form__error">{flow.saveError}</p>}
+          {flow.step === 'form' && (
+            <CaseForm
+              onSubmit={handleSubmit}
+              initialDraft={status.initialDraft}
+              fieldMeta={status.fieldMeta}
+            />
+          )}
+          {flow.step === 'confirming' && (
+            <LinkConfirmDialog matches={flow.matches} onConfirm={handleConfirm} onDecline={handleDecline} />
+          )}
+          {flow.step === 'saving' && <p role="status">Saving case…</p>}
         </>
       )}
     </section>

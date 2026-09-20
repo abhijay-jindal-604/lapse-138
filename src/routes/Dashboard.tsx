@@ -37,6 +37,7 @@ type DashboardEntry = {
   title: string
   board: ClockBoard
   isSample: boolean
+  linkedCaseIds: string[]
 }
 
 function titleFor(board: ClockBoard): string {
@@ -47,19 +48,27 @@ function titleFor(board: ClockBoard): string {
 // there's something to click before any case has been saved for real. Not part of
 // M4-T4's seeded isSample data, so they don't trigger the sample-data banner.
 const FIXTURE_ENTRIES: DashboardEntry[] = [
-  { id: 'act-now', title: titleFor(actNow as ClockBoard), board: actNow as ClockBoard, isSample: false },
+  { id: 'act-now', title: titleFor(actNow as ClockBoard), board: actNow as ClockBoard, isSample: false, linkedCaseIds: [] },
   {
     id: 'deadline-missed',
     title: titleFor(deadlineMissed as ClockBoard),
     board: deadlineMissed as ClockBoard,
     isSample: false,
+    linkedCaseIds: [],
   },
-  { id: 'needs-review', title: titleFor(needsReview as ClockBoard), board: needsReview as ClockBoard, isSample: false },
+  {
+    id: 'needs-review',
+    title: titleFor(needsReview as ClockBoard),
+    board: needsReview as ClockBoard,
+    isSample: false,
+    linkedCaseIds: [],
+  },
   {
     id: 'advisory-window',
     title: titleFor(advisoryWindow as ClockBoard),
     board: advisoryWindow as ClockBoard,
     isSample: false,
+    linkedCaseIds: [],
   },
 ]
 
@@ -155,6 +164,69 @@ export function Dashboard() {
     else groups.push({ drawerName: row.board.facts.drawerName, entries: [row] })
   }
 
+  // BL-2: union-find merge on top of the drawerName partition above — a case
+  // with linkedCaseIds (set only once a human confirmed the link) pulls its
+  // own group and each linked case's group together, so a repeat defaulter
+  // recorded under a slightly different spelling still surfaces as one
+  // dashboard entry.
+  const caseIdToGroupIndex = new Map<string, number>()
+  groups.forEach((g, i) => {
+    for (const row of g.entries) caseIdToGroupIndex.set(row.id, i)
+  })
+  const parent = groups.map((_, i) => i)
+  function find(i: number): number {
+    while (parent[i] !== i) {
+      parent[i] = parent[parent[i]]
+      i = parent[i]
+    }
+    return i
+  }
+  function union(a: number, b: number) {
+    const ra = find(a)
+    const rb = find(b)
+    if (ra !== rb) parent[rb] = ra
+  }
+  for (const row of filteredRows) {
+    if (row.linkedCaseIds.length === 0) continue
+    const ownGroupIndex = caseIdToGroupIndex.get(row.id)
+    if (ownGroupIndex === undefined) continue
+    for (const linkedId of row.linkedCaseIds) {
+      const linkedGroupIndex = caseIdToGroupIndex.get(linkedId)
+      if (linkedGroupIndex !== undefined) union(ownGroupIndex, linkedGroupIndex)
+    }
+  }
+
+  // Merged group's header uses the oldest case's drawerName (by computedAt),
+  // plus a count of how many other distinct names are linked in — not every
+  // distinct name joined, and not separate groups with a cross-reference.
+  const mergedByRoot = new Map<
+    number,
+    { drawerName: string; oldestComputedAt: string; entries: typeof filteredRows; names: Set<string> }
+  >()
+  groups.forEach((g, i) => {
+    const root = find(i)
+    const oldestInGroup = g.entries.reduce((oldest, e) =>
+      e.board.computedAt < oldest.board.computedAt ? e : oldest,
+    )
+    const existing = mergedByRoot.get(root)
+    if (!existing) {
+      mergedByRoot.set(root, {
+        drawerName: oldestInGroup.board.facts.drawerName,
+        oldestComputedAt: oldestInGroup.board.computedAt,
+        entries: [...g.entries],
+        names: new Set([g.drawerName]),
+      })
+    } else {
+      existing.entries.push(...g.entries)
+      existing.names.add(g.drawerName)
+      if (oldestInGroup.board.computedAt < existing.oldestComputedAt) {
+        existing.drawerName = oldestInGroup.board.facts.drawerName
+        existing.oldestComputedAt = oldestInGroup.board.computedAt
+      }
+    }
+  })
+  const mergedGroups = [...mergedByRoot.values()]
+
   return (
     <section>
       <div className="dashboard-heading">
@@ -233,12 +305,18 @@ export function Dashboard() {
       )}
 
       <div className="dashboard-groups">
-        {groups.map((group) => {
+        {mergedGroups.map((group) => {
           const total = group.entries.reduce((sum, e) => sum + e.board.facts.amountInPaise, 0)
+          const linkedNameCount = group.names.size - 1
           return (
-            <div key={group.drawerName} className="dashboard-group">
+            <div key={group.entries[0].id} className="dashboard-group">
               <div className="dashboard-group__header">
                 <span className="dashboard-group__name">{group.drawerName}</span>
+                {linkedNameCount > 0 && (
+                  <span className="dashboard-group__linked-badge">
+                    {linkedNameCount} linked name{linkedNameCount === 1 ? '' : 's'}
+                  </span>
+                )}
                 <span className="dashboard-group__meta">
                   {group.entries.length} cheque{group.entries.length === 1 ? '' : 's'} ·{' '}
                   {formatRupees(total)} total
@@ -293,7 +371,7 @@ export function Dashboard() {
             </div>
           )
         })}
-        {groups.length === 0 && (
+        {mergedGroups.length === 0 && (
           <p>{view === 'archive' ? 'No resolved cases yet.' : 'No cases match this filter.'}</p>
         )}
       </div>
