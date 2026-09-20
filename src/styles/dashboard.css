@@ -47,11 +47,19 @@
   border-radius: 2px;
 }
 
+.dashboard-view-tabs {
+  display: flex;
+  gap: 8px;
+  margin: 20px 0 0;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--rule);
+}
+
 .dashboard-filters {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin: 20px 0 0;
+  margin: 14px 0 0;
 }
 
 .dashboard-filter {

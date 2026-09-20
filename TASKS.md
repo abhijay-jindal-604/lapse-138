@@ -436,9 +436,23 @@ not left half-visible.
 |---|---|---|---|---|---|
 | **M6-T1** | B | | Record the demo video per DEMO.md | Under 3:00, audio clear, every shot in the DEMO.md shot list present, uploaded and the link tested in a private window | M5 freeze |
 | **M6-T2** | A | | README: what it is, the problem, architecture diagram, local setup, deployed URL, **AI-assistance disclosure** | A stranger can clone, run `npm install && npx ampx sandbox && npm run dev`, and reach a working app by following it alone | M5 freeze |
-| **M6-T3** | A | | `LEARNINGS.md` for the Learning criterion | Covers: the §479 pivot and why we killed it, Bedrock cross-region inference in Mumbai, the model/engine boundary, and the off-by-one that the test table caught | M5 freeze |
+| **M6-T3** | A | ✅¹ | `LEARNINGS.md` for the Learning criterion | Covers: the §479 pivot and why we killed it, Bedrock cross-region inference in Mumbai, the model/engine boundary, and the off-by-one that the test table caught | M5 freeze |
 | **M6-T4** | A+B | | AWS Builder Center blog post | Published, link in the README. Reuses LEARNINGS.md — do not write it twice. | M6-T3 |
 | **M6-T5** | A+B | | Submit | Submission form completed **by 19:00 IST**, with repo URL, live URL and video link. All three opened and verified in a private browser window. | all |
+
+¹ M6-T3 written 20 Sep: all four required topics covered against verified sources — the §479
+pivot (D-00), the Bedrock account-hold-vs-residency distinction (D-04, D-27, ARCHITECTURE.md
+§4/§7), the model/engine trust boundary enforced in `boundary.ts`/`draft.ts` and tested
+adversarially (tampered client result recomputed correctly on the live deployment, per
+M4-T1's footnote), and the test table's actual catch. On that last point: checked git history
+before writing rather than assuming — T24 (the today-equals-deadline boundary LEGAL_RULES.md
+§5 itself flags as highest-risk) was correct from the commit that first implemented it and
+never triggered a real regression; the concrete bug the tests did catch was fixture text
+drift (D-25) — three hand-written fixtures published in M1-T2 went stale against `clocks.ts`'s
+revised reasoning prose, undetected because `fixtures.test.ts` only checked shape, and only
+surfaced when `board.test.ts`'s byte-identical assertions were added in the M2 prereq commit.
+`LEARNINGS.md` reports this precisely rather than rounding it up to a more dramatic
+date-arithmetic bug that didn't happen. All 144 tests (111 rules + 33 amplify) still pass.
 
 **Submit at 19:00, not 19:55.** The hour of buffer is the plan, not slack.
 
@@ -456,3 +470,22 @@ Cut in this order, and say so in the video rather than hiding it:
 not the dashboard), M5-T4 (date-travel — the designated wow moment, see DECISIONS.md D-21;
 if M5 is running short, build this before M5-T0/T1/T2/T3, not after), M6-T1 (the video),
 M6-T5 (the submission).
+
+---
+
+## BACKLOG · Post-submission — not part of the M6 freeze
+
+*From the 20 Sep design discussion. Neither item may be started before M6-T5 (submission) is
+verified complete — the M6 freeze above still applies until then.*
+
+| ID | Lane | ✅ | Goal | Touches | Accept when | Needs |
+|---|---|---|---|---|---|---|
+| **BL-1** | B | ✅ | **Archive view** — a Dashboard tab/filter showing only `status: RESOLVED` cases, separate from the active list | `src/routes/Dashboard.tsx` | A distinct "Archive" filter lists only `RESOLVED` cases; the default view excludes them | none — `RESOLVED` already exists in the status enum (`amplify/data/resource.ts`) |
+| **BL-2** | B | | **Repeat-party linking** — when a new case's `accusedMobile` matches an existing case's, surface a confirm prompt ("link this cheque to the existing Suresh Kumar, 98xxxxxx?") instead of treating every case as unrelated | wherever facts are finalized (`src/routes/Confirm.tsx` / `NewCase.tsx`), `src/lib/` for the match query, `Dashboard.tsx` for grouped display | Entering a mobile number that matches an existing case's `facts.accusedMobile` shows a named confirm prompt; confirming associates the cases for display only (no data merge); declining creates a fully independent case as today | BL-1 pairs well but isn't required |
+
+**Why confirm, not auto-merge:** `accusedMobile` is a human-entered, affidavit-bound field
+(LEGAL_RULES.md §7), so matching on it is a defensible signal, not a guess pulled from
+extraction — but Indian mobile numbers get recycled, so a false-positive match could wrongly
+attribute one person's cheque history to someone else on a legal record. A human confirms the
+link; nothing merges silently. No new `Party` model or schema migration needed — match by
+querying existing `Case.facts` directly.

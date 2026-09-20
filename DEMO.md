@@ -11,6 +11,35 @@ poor — a clean voiceover over clean screen capture beats a single nervous take
 
 ---
 
+## Before you hit record — the pregeneration pass (do this first, not on camera)
+
+Do this once, quietly, with no camera running, before any take:
+
+1. Open the live URL: https://main.ddkpu3vpsh6s9.amplifyapp.com
+2. Upload `samples/demo-case/dishonour-memo.pdf` and let extraction run for real.
+3. Correct `bankInfoReceivedDate` to `2026-08-06`.
+4. Generate the synopsis and save the case. **Do not click "generate draft notice" on this
+   case** — its Clock 2 is `DEADLINE_MISSED`, and `assertNoticeEligible()`
+   (`amplify/functions/draftNotice/notice.ts`) deliberately throws on that status rather
+   than draft a notice for a window that's already closed. The notice-generation shot
+   (step 8 below) uses a second, still-open case instead — see that step for which one.
+5. Confirm the dashboard has at least one seeded case whose notice window is still open
+   (e.g. the `actNow1` / "Green Valley Agro" case from `scripts/seed.ts`, Clock 2 status
+   `live`). If the seed data isn't on the live deployment yet, run the existing seed
+   script against it now — this is populating data with an already-built script, not new
+   feature work, so it's fine under the M6 freeze. Generate that case's draft notice now,
+   for real, and save it too.
+
+This is the one live Gemini call each of these two cases should ever need. It leaves
+behind two saved cases — the hero (extracted fields, corrected date, generated synopsis)
+and the second, open one (generated notice) — that the recording below opens/cuts to
+instead of calling the model again. **Nothing in the actual recording may depend on a live
+model call** (see "Rules for the recording" below) — that protection only works if this
+pass has already happened and produced saved cases to fall back on. If this hasn't been
+done yet, do it before reading any further.
+
+---
+
 ## The script
 
 ### 0:00–0:20 · Hook — the hero case, and it's already late
@@ -44,12 +73,13 @@ file after a deadline has already passed.
 
 Lapse does the arithmetic, and it doesn't stop at 'you're late.'"
 
-### 0:45–2:05 · The walkthrough — one unbroken take, on the blown deadline
-> *Screen: the real app, no cuts if possible.*
+### 0:45–2:05 · The walkthrough — mostly one unbroken take, on the blown deadline
+> *Screen: the real app. One deliberate cut, at step 8, to a second saved case — everything
+> else stays on the hero case.*
 
 1. **Upload** the redacted sample dishonour memo. *"We start with the one document everyone
    has — the bank's return memo."*
-2. **Extraction lands.** *"Bedrock reads it. Cheque number, date, amount, reason for
+2. **Extraction lands.** *"Gemini reads it. Cheque number, date, amount, reason for
    dishonour — and for every single field, the exact line it came from."* **Hover one field
    to show its source quote.**
 3. **Correct a field.** *"It got the date he actually found out about the bounce wrong —
@@ -73,28 +103,32 @@ Lapse does the arithmetic, and it doesn't stop at 'you're late.'"
    a salvage path that's actually closed."* **Show the `recoveryPath` panel with the same
    visual weight as the missed deadline, and the earliest-permissible re-filing date next to
    the new deadline — not filing too early is as fatal as filing too late.**
-8. **Generate the draft notice.** *"Drafted around dates the model never calculated — for the
-   re-presentation, not the dead one — and it reminds him to send it by registered post and
-   keep the tracking receipt, because that receipt is the evidence of service the case will
-   need."*
-9. **Generate the synopsis — no AI call.** *"And this — the Supreme Court now requires every
-   Section 138 complaint to carry a structured synopsis, in this exact format, since the
-   first of November. We already have every field it needs, confirmed by a human. One click,
-   zero model calls — it's pure formatting of data you already checked."*
-10. **Edit a line, download both.**
+8. **Cut to a second, still-open case, and open its already-generated draft notice.**
+   *"That recovery path becomes real the moment the cheque is re-presented and bounces
+   again — a fresh case, with its own fresh thirty-day window. Here's what the notice
+   looks like once that window is open: drafted around dates the model never calculated,
+   and it reminds him to send it by registered post and keep the tracking receipt, because
+   that receipt is the evidence of service the case will need."* **Show the DRAFT header
+   and the registered-post reminder line.**
+9. **Cut back to the hero case. Generate its synopsis — no AI call.** *"Back to the blown
+   deadline. This — the Supreme Court now requires every Section 138 complaint to carry a
+   structured synopsis, in this exact format, since the first of November. We already have
+   every field it needs, confirmed by a human. One click, zero model calls — it's pure
+   formatting of data you already checked."*
+10. **Edit a line, download it.**
 11. **Date-travel — the wow moment.** *"One more thing. Everything you just saw came from one
     pure function of the facts and today's date. Watch what happens when I drag today."*
     **Drag the date slider live, in one continuous motion, from before the dishonour through
     the healthy window, into `ACT_NOW`, past the notice deadline into `DEADLINE_MISSED`, and
     watch the recovery path appear.** *"No page reload, no server round trip, no model call —
-    just the same twenty-seven-test engine, recomputing in real time. That's what 'the model
-    never decides' actually looks like."*
+    just the same engine, a hundred and eleven tests deep, recomputing in real time. That's
+    what 'the model never decides' actually looks like."*
 
 ### 2:05–2:22 · Where AWS fits, and the boundary
 > *Screen: the architecture diagram from the README.*
 
 "React on Amplify Hosting. AppSync and DynamoDB for data. S3 for documents. Two Lambdas
-that call Bedrock — Claude Haiku reads the document, Claude Sonnet writes the draft. The
+that call the Gemini API — one reads the document, the other writes the draft. The
 synopsis needs no model call at all — it's just the confirmed data, reformatted.
 
 And in the middle, doing the one thing that actually decides someone's case: a pure
@@ -118,7 +152,7 @@ First: we started this weekend building something else — a tool to find undert
 prisoners eligible for release under Section 479 of the BNSS. We read the statute properly
 on day one and killed it. Sub-section two bars release if more than one case is pending, and
 filing multiple sections in one FIR is routine — the government's own campaign found nine
-hundred fifty-one eligible people nationwide, against four and a half lakh undertrials. We'd
+hundred fifty-one eligible people nationwide, against roughly four lakh undertrials. We'd
 rather ship something where the law actually works, and where we can prove it with tests.
 
 Second: our first draft of this pitch had the wrong number — three point three crore pending
@@ -151,7 +185,7 @@ He missed one deadline. He still has a path. Now somebody's counting it for him.
 | **Idea and impact** | Hook + problem: a concrete case already past its deadline, sourced numbers (43 lakh cases nationwide, precisely-attributed 30% observation) | 0:00–0:45 |
 | **Built on AWS** | Named services over the architecture diagram, with the reason for each | 2:05–2:22 |
 | **Learning** | The §479 pivot and owning the pendency-number correction — both specific, both honest | 2:22–2:42 |
-| **Execution** | The unbroken walkthrough on the live URL: extraction, salvage path, notice, synopsis, live date-travel | 0:45–2:05 |
+| **Execution** | The walkthrough on the live URL: extraction, salvage path, notice (on a second open case), synopsis, live date-travel | 0:45–2:05 |
 | **The video itself** | Under 3:00, clear audio, no dead air, one idea per shot | all |
 
 ---
@@ -162,26 +196,26 @@ He missed one deadline. He still has a path. Now somebody's counting it for him.
 |---|---|---|---|
 | 1 | Case detail view, the real redacted demo case | `DEADLINE_MISSED` status, unmistakable, on day 45 | Pre-loaded; never depends on a live call during recording |
 | 2 | Upload the redacted sample memo | The file landing, a progress state | Pre-uploaded case, open it instead |
-| 3 | Extraction result | Fields populated, one source quote on hover | **Pre-extracted and saved.** Do not gamble on a live Bedrock call during recording. |
+| 3 | Extraction result | Fields populated, one source quote on hover | **Pre-extracted and saved.** Do not gamble on a live Gemini call during recording. |
 | 4 | Correcting a field | The board visibly recomputing | — |
 | 5 | Clock board, all four clocks | Four distinct clocks with day counts, Clock 2 shown as missed | — |
 | 6 | Reasoning chain expanded | Section reference, trigger date, counting rule, result date | — |
 | 7 | Cheque-validity check | The presentation-validity date (3 months from cheque date) shown explicitly gating the recovery path | — |
 | 8 | Recovery path on the `DEADLINE_MISSED` case | The re-presentation salvage path **and** the earliest-permissible re-filing date, rendered with full visual weight, not greyed out | Cut to a saved case that already shows it |
-| 9 | Draft notice generated | Readable legal notice with the DRAFT header and the registered-post reminder | Pre-generated draft saved on the case |
-| 10 | Synopsis generated | All synopsis sections populated including the affidavit-flagged contact-particulars section, "DRAFT SYNOPSIS" header | Pre-generated synopsis saved on the case |
-| 11 | Editing and downloading both documents | The downloaded files opening | — |
+| 9 | Draft notice generated, **on the second, still-open case, not the hero** | Readable legal notice with the DRAFT header and the registered-post reminder | Pre-generated draft saved on that second case. Never attempt this on the `DEADLINE_MISSED` hero case — `assertNoticeEligible()` throws on it by design. |
+| 10 | Synopsis generated, **back on the hero case** | All synopsis sections populated including the affidavit-flagged contact-particulars section, "DRAFT SYNOPSIS" header | Pre-generated synopsis saved on the hero case |
+| 11 | Editing and downloading the notice and the synopsis (two different saved cases) | The downloaded files opening | — |
 | 12 | **Date-travel slider, dragged live** | The case crossing `ON_TRACK` → `ACT_NOW` → `DEADLINE_MISSED` with the recovery path appearing, all in one continuous drag, no reload | **This is the designated wow moment (D-21). Do not cut this shot under any time pressure** — it is the single most differentiating five seconds in the video. |
 | 13 | Architecture diagram | Every AWS service named in the script | Static image in the README |
-| 14 | Test suite running green | 27 passing tests in a terminal | **Do not skip this shot.** It is the proof behind the whole "the model never decides" claim, and it takes four seconds. |
+| 14 | Test suite running green | `npm test` output — 111 passing in the rules engine plus 33 in the AWS layer, 144 total, in a terminal | **Do not skip this shot.** It is the proof behind the whole "the model never decides" claim, and it takes four seconds. |
 
 ---
 
 ## Rules for the recording
 
-- **Nothing in the video may depend on a live Bedrock call.** Pre-extract and pre-generate.
+- **Nothing in the video may depend on a live Gemini call.** Pre-extract and pre-generate.
   A cold Lambda or a throttle during take three will cost an hour you do not have.
-- Say the number of tests out loud. "Twenty-four" is concrete; "well tested" is noise.
+- Say the number of tests out loud. "144" is concrete; "well tested" is noise.
 - Never say "potentially", "might", "we hope to". Present tense, what it does.
 - Do not apologise for anything that is missing. Put it in the roadmap line instead.
 - Watch the whole thing once at full length before uploading. Check the audio at both ends.

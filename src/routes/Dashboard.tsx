@@ -20,13 +20,15 @@ const OVERALL_STATUS_LABEL: Record<OverallStatus, string> = {
   ON_TRACK: 'On track',
 }
 
+// RESOLVED has its own Archive tab (BL-1, TASKS.md) rather than sitting alongside
+// the active statuses here — a resolved case has nothing left to act on, so mixing
+// it into the active filter row would bury the statuses that do.
 const FILTERS: { value: OverallStatus | 'ALL'; label: string }[] = [
   { value: 'ALL', label: 'All' },
   { value: 'ACT_NOW', label: 'Act now' },
   { value: 'DEADLINE_MISSED', label: 'Deadline missed' },
   { value: 'NEEDS_REVIEW', label: 'Needs review' },
   { value: 'ON_TRACK', label: 'On track' },
-  { value: 'RESOLVED', label: 'Resolved' },
   { value: 'NOT_A_138_CASE', label: 'Not a §138 case' },
 ]
 
@@ -78,6 +80,7 @@ export function Dashboard() {
   const [error, setError] = useState<string | null>(null)
   const [statusFilter, setStatusFilter] = useState<OverallStatus | 'ALL'>('ALL')
   const [search, setSearch] = useState('')
+  const [view, setView] = useState<'active' | 'archive'>('active')
 
   useEffect(() => {
     listCases()
@@ -128,7 +131,13 @@ export function Dashboard() {
 
   const query = search.trim().toLowerCase()
   const filteredRows = rows.filter((c) => {
-    if (statusFilter !== 'ALL' && c.board.overallStatus !== statusFilter) return false
+    const isResolved = c.board.overallStatus === 'RESOLVED'
+    if (view === 'archive') {
+      if (!isResolved) return false
+    } else {
+      if (isResolved) return false
+      if (statusFilter !== 'ALL' && c.board.overallStatus !== statusFilter) return false
+    }
     if (query === '') return true
     return (
       c.board.facts.chequeNumber.toLowerCase().includes(query) ||
@@ -166,21 +175,42 @@ export function Dashboard() {
       {error && <p className="case-form__error">{error}</p>}
       {hasSampleData && <p className="dashboard-sample-banner">Sample data. Not real cases.</p>}
 
-      <div className="dashboard-filters">
-        {FILTERS.map((f) => (
-          <button
-            key={f.value}
-            type="button"
-            className="dashboard-filter"
-            aria-pressed={statusFilter === f.value}
-            onClick={() => setStatusFilter(f.value)}
-          >
-            {f.label}
-          </button>
-        ))}
+      <div className="dashboard-view-tabs">
+        <button
+          type="button"
+          className="dashboard-filter"
+          aria-pressed={view === 'active'}
+          onClick={() => setView('active')}
+        >
+          Active
+        </button>
+        <button
+          type="button"
+          className="dashboard-filter"
+          aria-pressed={view === 'archive'}
+          onClick={() => setView('archive')}
+        >
+          Archive
+        </button>
       </div>
 
-      {mostUrgent && mostUrgent.deadline && (
+      {view === 'active' && (
+        <div className="dashboard-filters">
+          {FILTERS.map((f) => (
+            <button
+              key={f.value}
+              type="button"
+              className="dashboard-filter"
+              aria-pressed={statusFilter === f.value}
+              onClick={() => setStatusFilter(f.value)}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {view === 'active' && mostUrgent && mostUrgent.deadline && (
         <Link
           to={`/case/${mostUrgent.id}`}
           className="dashboard-hero"
@@ -242,7 +272,9 @@ export function Dashboard() {
             </div>
           )
         })}
-        {groups.length === 0 && <p>No cases match this filter.</p>}
+        {groups.length === 0 && (
+          <p>{view === 'archive' ? 'No resolved cases yet.' : 'No cases match this filter.'}</p>
+        )}
       </div>
     </section>
   )
