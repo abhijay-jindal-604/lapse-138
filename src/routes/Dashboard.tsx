@@ -7,7 +7,7 @@ import deadlineMissed from '../../packages/rules/fixtures/deadline-missed.json'
 import needsReview from '../../packages/rules/fixtures/needs-review.json'
 import { listCases } from '../lib/cases'
 import { deadlineActionLabel, getNextDeadline, getRecoveryHeadline, type NextDeadline } from '../lib/deadlines'
-import { formatDate, formatRupees } from '../lib/format'
+import { formatDate, formatRupees, rupeesInWords } from '../lib/format'
 import '../styles/clockboard.css' // reuses .status-badge's overall-status colour map
 import '../styles/dashboard.css'
 
@@ -252,19 +252,40 @@ export function Dashboard() {
                     className="dashboard-chip"
                     data-status={c.board.overallStatus}
                   >
-                    <div className="dashboard-chip__main">
-                      <span className="dashboard-chip__number">#{c.board.facts.chequeNumber}</span>
-                      <span className="dashboard-chip__amount">{formatRupees(c.board.facts.amountInPaise)}</span>
-                      <span className="status-badge dashboard-chip__status" data-overall-status={c.board.overallStatus}>
-                        {OVERALL_STATUS_LABEL[c.board.overallStatus]}
-                      </span>
-                      <span className="dashboard-chip__days" data-missed={c.deadline?.isMissed || undefined}>
-                        {c.deadline ? formatDayCount(c.deadline) : OVERALL_STATUS_LABEL[c.board.overallStatus]}
-                      </span>
+                    <div className="dashboard-chip__frame">
+                      <div className="dashboard-chip__topline">
+                        <span className="dashboard-chip__no">No. {c.board.facts.chequeNumber}</span>
+                        <span className="dashboard-chip__dateline">
+                          <span className="dashboard-chip__dateline-label">Date</span>
+                          <span className="dashboard-chip__dateline-value">{formatDate(c.board.facts.chequeDate)}</span>
+                        </span>
+                      </div>
+                      <div className="dashboard-chip__payline">
+                        <div className="dashboard-chip__payline-text">
+                          <span className="dashboard-chip__payline-label">Pay to the order of</span>
+                          <span className="dashboard-chip__payline-name">{c.board.facts.payeeName}</span>
+                        </div>
+                        <span className="dashboard-chip__amount-box">{formatRupees(c.board.facts.amountInPaise)}</span>
+                      </div>
+                      <div className="dashboard-chip__words">
+                        <span className="dashboard-chip__words-text">
+                          Rupees {rupeesInWords(c.board.facts.amountInPaise)}
+                        </span>
+                        <span className="dashboard-chip__words-fill" aria-hidden="true" />
+                        <span className="dashboard-chip__words-only">Only</span>
+                      </div>
+                      <div className="dashboard-chip__endorsement">
+                        <span className="status-badge dashboard-chip__status" data-overall-status={c.board.overallStatus}>
+                          {OVERALL_STATUS_LABEL[c.board.overallStatus]}
+                        </span>
+                        <span className="dashboard-chip__days" data-missed={c.deadline?.isMissed || undefined}>
+                          {c.deadline ? formatDayCount(c.deadline) : OVERALL_STATUS_LABEL[c.board.overallStatus]}
+                        </span>
+                      </div>
                     </div>
-                    <div className="dashboard-chip__sub">
-                      <span className="dashboard-chip__payee">Payable to {c.board.facts.payeeName}</span>
-                      <span className="dashboard-chip__date">Cheque dated {formatDate(c.board.facts.chequeDate)}</span>
+                    <div className="dashboard-chip__micr">
+                      <span>⑆{c.board.facts.chequeNumber}⑆</span>
+                      <span>⑆{c.board.facts.drawerName.replace(/\s+/g, '').slice(0, 12).toUpperCase()}⑆</span>
                     </div>
                   </Link>
                 ))}

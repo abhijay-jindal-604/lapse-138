@@ -183,64 +183,158 @@
 .dashboard-group__rows {
   display: flex;
   flex-direction: column;
+  gap: 10px;
 }
 
+/* Each row restyled as an instrument leaf: an outer card, a dashed inner
+   frame (the security-border cheques print), status carried by the badge +
+   coloured day-count as before, and a MICR-style band bled to the bottom
+   edge, outside the frame — where the real printed line sits. */
 .dashboard-chip {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 11px 4px;
   text-decoration: none;
   color: var(--ink);
-  border-bottom: 1px solid var(--rule);
-}
-
-.dashboard-group__rows .dashboard-chip:last-child {
-  border-bottom: none;
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  overflow: hidden;
 }
 
 .dashboard-chip:hover {
-  background: var(--panel-sunk);
+  border-color: var(--rule-strong);
 }
 
-.dashboard-chip__main {
+.dashboard-chip__frame {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  gap: 9px;
+  margin: 5px;
+  padding: 10px 13px;
+  border: 1px dashed var(--rule);
+}
+
+.dashboard-chip__topline {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-faint);
+}
+
+.dashboard-chip__dateline {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.dashboard-chip__dateline-value {
+  color: var(--ink-soft);
+  border-bottom: 1px solid var(--rule-strong);
+  padding: 0 2px 1px;
+}
+
+.dashboard-chip__payline {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
   gap: 16px;
 }
 
-.dashboard-chip__sub {
+.dashboard-chip__payline-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  flex: 1;
+}
+
+.dashboard-chip__payline-label {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 11px;
+  color: var(--ink-faint);
+}
+
+.dashboard-chip__payline-name {
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--ink);
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--rule-strong);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dashboard-chip__amount-box {
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 13.5px;
+  color: var(--ink);
+  background: var(--panel-sunk);
+  border: 1px solid var(--rule-strong);
+  border-radius: 2px;
+  padding: 4px 10px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* The amount-in-words line — arguably the most recognisable line on a
+   cheque. A dashed fill soaks up the leftover width the way a real cheque's
+   hand-drawn strike-through does, ending in "Only" the way theirs ends in
+   the currency name. */
+.dashboard-chip__words {
   display: flex;
   align-items: baseline;
-  gap: 12px;
-  font-family: var(--mono);
-  font-size: 11.5px;
-  color: var(--ink-faint);
-}
-
-.dashboard-chip__number {
-  font-family: var(--mono);
+  gap: 8px;
+  font-family: var(--serif);
+  font-style: italic;
   font-size: 12.5px;
-  color: var(--ink-faint);
-  min-width: 5.5em;
+  color: var(--ink-soft);
 }
 
-.dashboard-chip__amount {
-  font-family: var(--mono);
-  font-weight: 500;
-  font-size: 14px;
-  min-width: 6.5em;
+.dashboard-chip__words-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dashboard-chip__words-fill {
+  flex: 1;
+  min-width: 20px;
+  border-bottom: 1px dashed var(--rule-strong);
+  align-self: center;
+}
+
+.dashboard-chip__words-only {
+  font-weight: 600;
+  font-style: normal;
+  text-transform: uppercase;
+  font-size: 10.5px;
+  letter-spacing: 0.05em;
+  color: var(--ink-faint);
+  flex-shrink: 0;
+}
+
+.dashboard-chip__endorsement {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .dashboard-chip__status {
   padding: 4px 9px;
-  font-size: 11.5px;
+  font-size: 11px;
 }
 
 .dashboard-chip__days {
   margin-left: auto;
   font-family: var(--mono);
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 600;
   text-align: right;
   color: var(--ink-faint);
@@ -259,24 +353,43 @@
   color: var(--review);
 }
 
+/* MICR band — the printed routing line along a cheque's bottom edge. Real
+   E-13B glyphs aren't available generally, but the OCR-symbol Unicode block
+   (⑆) is literally what those glyphs are for. */
+.dashboard-chip__micr {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 16px;
+  background: var(--panel-sunk);
+  border-top: 1px solid var(--rule);
+  font-family: var(--mono);
+  font-weight: 600;
+  font-size: 11.5px;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+}
+
 @media (max-width: 640px) {
   .dashboard-search-wrap {
     min-width: 0;
     width: 100%;
   }
 
-  .dashboard-chip__main {
+  .dashboard-chip__payline {
     flex-wrap: wrap;
   }
 
-  .dashboard-chip__days {
-    margin-left: 0;
-    text-align: left;
-    flex-basis: 100%;
+  .dashboard-chip__payline-name {
+    white-space: normal;
   }
 
-  .dashboard-chip__sub {
-    flex-wrap: wrap;
-    gap: 4px 12px;
+  .dashboard-chip__words-text {
+    white-space: normal;
+  }
+
+  .dashboard-chip__words-fill {
+    display: none;
   }
 }
