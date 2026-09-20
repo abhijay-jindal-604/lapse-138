@@ -3,40 +3,49 @@
 The judges see **this video and the README**. Nothing else. There is no live demo, no
 chance to explain, no follow-up question. Everything that matters has to be on screen.
 
-**Length:** 2:50 target, 3:00 absolute ceiling.
+**Length:** 2:58 target, 3:00 absolute ceiling. (Was 2:50 — the test-suite proof shot
+required by the shot list had no place in the script until now; it costs ~8s and it's
+non-negotiable. There is no slack left — deliver every line at pace, don't pad pauses.)
 **Record:** Sunday 12:00–15:00 IST. Budget three takes.
 **Setup:** 1080p, browser at 100% zoom, bookmarks bar hidden, notifications off, one clean
-profile, demo account already signed in. Record screen and audio separately if the mic is
-poor — a clean voiceover over clean screen capture beats a single nervous take.
+profile. (M5-T1 Cognito auth was cut — see TASKS.md's own priority order — so there is no
+sign-in step: the live URL opens straight to the app. Don't go looking for a login screen.)
+Record screen and audio separately if the mic is poor — a clean voiceover over clean screen
+capture beats a single nervous take.
 
 ---
 
 ## Before you hit record — the pregeneration pass (do this first, not on camera)
 
-Do this once, quietly, with no camera running, before any take:
+**Read this before assuming anything here can be "cut to" during recording.** `Confirm.tsx`
+(extraction) and `Draft.tsx` (notice generation) both call their Gemini-backed query fresh
+on every mount, with no persistence — checked directly against `src/lib/cases.ts` and
+`amplify/functions/draftNotice`. There is no saved extraction state and no saved notice
+text to open later. Only the **synopsis** is real, persisted-free-standing content: it's
+pure client-side formatting of already-saved facts (`draftNotice/synopsis.ts`), zero model
+calls, safe to (re)generate live on camera as many times as you like. The hero **case**
+itself (drawer/cheque/dates/clock board) *is* genuinely saved — that's a normal DynamoDB
+write via `saveCase`, nothing Gemini-dependent about it.
 
-1. Open the live URL: https://main.ddkpu3vpsh6s9.amplifyapp.com
-2. Upload `samples/demo-case/dishonour-memo.pdf` and let extraction run for real.
-3. Correct `bankInfoReceivedDate` to `2026-08-06`.
-4. Generate the synopsis and save the case. **Do not click "generate draft notice" on this
-   case** — its Clock 2 is `DEADLINE_MISSED`, and `assertNoticeEligible()`
-   (`amplify/functions/draftNotice/notice.ts`) deliberately throws on that status rather
-   than draft a notice for a window that's already closed. The notice-generation shot
-   (step 8 below) uses a second, still-open case instead — see that step for which one.
-5. Confirm the dashboard has at least one seeded case whose notice window is still open
-   (e.g. the `actNow1` / "Green Valley Agro" case from `scripts/seed.ts`, Clock 2 status
-   `live`). If the seed data isn't on the live deployment yet, run the existing seed
-   script against it now — this is populating data with an already-built script, not new
-   feature work, so it's fine under the M6 freeze. Generate that case's draft notice now,
-   for real, and save it too.
+This pass has already been run once (2026-09-20, via browser automation against the live
+URL) and produced a confirmed-good hero case:
 
-This is the one live Gemini call each of these two cases should ever need. It leaves
-behind two saved cases — the hero (extracted fields, corrected date, generated synopsis)
-and the second, open one (generated notice) — that the recording below opens/cuts to
-instead of calling the model again. **Nothing in the actual recording may depend on a live
-model call** (see "Rules for the recording" below) — that protection only works if this
-pass has already happened and produced saved cases to fall back on. If this hasn't been
-done yet, do it before reading any further.
+- **Hero case:** https://main.ddkpu3vpsh6s9.amplifyapp.com/case/357bcef8-7432-4198-9737-d3e697bc4f8b
+  — `Suresh Kumar — #317042`, `DEADLINE_MISSED`, notice deadline `2026-09-05`, recovery
+  path to `2026-10-02` citing *MSR Leathers*. Its synopsis renders correctly at `/synopsis`.
+  This case is ready to open directly for shots 4–7 and 10 — no further action needed on it.
+- **Second, still-open case:** the seeded `actNow1` / "Green Valley Agro" (Manoj Yadav,
+  cheque #447721) case, already on the live deployment —
+  https://main.ddkpu3vpsh6s9.amplifyapp.com/case/57818f5f-50d5-4bd5-b212-a97e405a2dfd —
+  Clock 2 `Pending`, notice deadline `2026-09-21`. Its draft notice was generated once as a
+  smoke test (correct DRAFT header, correct dates, registered-post reminder) but **that
+  output is not saved anywhere** — see below.
+
+**What this pass does *not* give you, and nothing can:** a reusable "already extracted" or
+"already generated" state for shots 3 and 9. Those two shots require a live Gemini call at
+the moment they're filmed, no matter how many times you run this pass beforehand. Plan for
+that explicitly — see "Rules for the recording" below — rather than expecting to open a
+saved result.
 
 ---
 
@@ -75,7 +84,13 @@ Lapse does the arithmetic, and it doesn't stop at 'you're late.'"
 
 ### 0:45–2:05 · The walkthrough — mostly one unbroken take, on the blown deadline
 > *Screen: the real app. One deliberate cut, at step 8, to a second saved case — everything
-> else stays on the hero case.*
+> else stays on the hero case. Steps 1–4 (upload through submit) are naturally one
+> continuous live segment already — correcting the field and submitting are the immediate
+> next actions after extraction lands, nothing forces a cut there. The only real choice:
+> redo the whole take if extraction is slow (already budgeted at three takes), or shoot
+> steps 1–3 as their own short, retry-until-clean clip first to cap the retake cost, then
+> continue steps 4–11 on whichever case that produces. Either is fine; just don't expect to
+> open a pre-saved extraction result — it doesn't exist (see the pregeneration-pass note).*
 
 1. **Upload** the redacted sample dishonour memo. *"We start with the one document everyone
    has — the bank's return memo."*
@@ -103,7 +118,9 @@ Lapse does the arithmetic, and it doesn't stop at 'you're late.'"
    a salvage path that's actually closed."* **Show the `recoveryPath` panel with the same
    visual weight as the missed deadline, and the earliest-permissible re-filing date next to
    the new deadline — not filing too early is as fatal as filing too late.**
-8. **Cut to a second, still-open case, and open its already-generated draft notice.**
+8. **Cut to a second, still-open case, and generate its draft notice live** (shot as its
+   own retry-until-clean clip — see the shot list; there's no pre-generated version to
+   open, `Draft.tsx` always calls Gemini fresh).
    *"That recovery path becomes real the moment the cheque is re-presented and bounces
    again — a fresh case, with its own fresh thirty-day window. Here's what the notice
    looks like once that window is open: drafted around dates the model never calculated,
@@ -124,7 +141,7 @@ Lapse does the arithmetic, and it doesn't stop at 'you're late.'"
     just the same engine, a hundred and eleven tests deep, recomputing in real time. That's
     what 'the model never decides' actually looks like."*
 
-### 2:05–2:22 · Where AWS fits, and the boundary
+### 2:05–2:30 · Where AWS fits, and the boundary
 > *Screen: the architecture diagram from the README.*
 
 "React on Amplify Hosting. AppSync and DynamoDB for data. S3 for documents. Two Lambdas
@@ -140,10 +157,12 @@ counting, *MSR Leathers* on re-presentation, *Yogendra Pratap Singh* on prematur
 **The model reads and the model writes. The model never decides — and that includes the
 affidavit.** Every field that flows into a sworn statement in this app is entered by a human
 and carried through unchanged; the app never infers it and never drafts the affidavit itself.
-Every deadline in this app comes from code we can show you and tests we can run in front of
-you."
+Every deadline in this app comes from code we can show you — a hundred and forty-four tests,
+across the rules engine and the AWS layer, all passing, right now, not a claim you have to
+take on faith." **Cut to a terminal, `npm test` running green, for the last four seconds of
+this line — this is shot 14 and it must not be cut for time.**
 
-### 2:22–2:42 · What we learned
+### 2:30–2:50 · What we learned
 > *Screen: faces, or the LEARNINGS.md file.*
 
 "Two honest things.
@@ -167,7 +186,7 @@ mandatory national filing format, doesn't need a contested number to make the po
 saying this on camera because a legal tool that gets a public number wrong in its own pitch
 doesn't deserve to be trusted with anyone's dates."
 
-### 2:42–2:50 · Roadmap and close
+### 2:50–2:58 · Roadmap and close
 > *Screen: the case detail view, salvage path visible.*
 
 "The engine is built as rule packs. Section 138 is the first. Consumer limitation periods,
@@ -183,8 +202,8 @@ He missed one deadline. He still has a path. Now somebody's counting it for him.
 | Criterion | Where it lands | Seconds |
 |---|---|---|
 | **Idea and impact** | Hook + problem: a concrete case already past its deadline, sourced numbers (43 lakh cases nationwide, precisely-attributed 30% observation) | 0:00–0:45 |
-| **Built on AWS** | Named services over the architecture diagram, with the reason for each | 2:05–2:22 |
-| **Learning** | The §479 pivot and owning the pendency-number correction — both specific, both honest | 2:22–2:42 |
+| **Built on AWS** | Named services over the architecture diagram, with the reason for each, closing on the live test-suite proof | 2:05–2:30 |
+| **Learning** | The §479 pivot and owning the pendency-number correction — both specific, both honest | 2:30–2:50 |
 | **Execution** | The walkthrough on the live URL: extraction, salvage path, notice (on a second open case), synopsis, live date-travel | 0:45–2:05 |
 | **The video itself** | Under 3:00, clear audio, no dead air, one idea per shot | all |
 
@@ -195,26 +214,30 @@ He missed one deadline. He still has a path. Now somebody's counting it for him.
 | # | Shot | Must show | Fallback if broken |
 |---|---|---|---|
 | 1 | Case detail view, the real redacted demo case | `DEADLINE_MISSED` status, unmistakable, on day 45 | Pre-loaded; never depends on a live call during recording |
-| 2 | Upload the redacted sample memo | The file landing, a progress state | Pre-uploaded case, open it instead |
-| 3 | Extraction result | Fields populated, one source quote on hover | **Pre-extracted and saved.** Do not gamble on a live Gemini call during recording. |
+| 2 | Upload the redacted sample memo | The file landing, a progress state | **No fallback exists — see below.** |
+| 3 | Extraction result | Fields populated, one source quote on hover | **This is a live Gemini call every time, unavoidably** (`Confirm.tsx` has no cache) — there is no pre-extracted state to fall back to. See the walkthrough section's note on whether to isolate steps 1–3 as their own retry-tolerant clip or just redo the full take. |
 | 4 | Correcting a field | The board visibly recomputing | — |
 | 5 | Clock board, all four clocks | Four distinct clocks with day counts, Clock 2 shown as missed | — |
 | 6 | Reasoning chain expanded | Section reference, trigger date, counting rule, result date | — |
 | 7 | Cheque-validity check | The presentation-validity date (3 months from cheque date) shown explicitly gating the recovery path | — |
 | 8 | Recovery path on the `DEADLINE_MISSED` case | The re-presentation salvage path **and** the earliest-permissible re-filing date, rendered with full visual weight, not greyed out | Cut to a saved case that already shows it |
-| 9 | Draft notice generated, **on the second, still-open case, not the hero** | Readable legal notice with the DRAFT header and the registered-post reminder | Pre-generated draft saved on that second case. Never attempt this on the `DEADLINE_MISSED` hero case — `assertNoticeEligible()` throws on it by design. |
-| 10 | Synopsis generated, **back on the hero case** | All synopsis sections populated including the affidavit-flagged contact-particulars section, "DRAFT SYNOPSIS" header | Pre-generated synopsis saved on the hero case |
+| 9 | Draft notice generated, **on the second, still-open case, not the hero** | Readable legal notice with the DRAFT header and the registered-post reminder | **Also a live Gemini call every time — `Draft.tsx` has no cache either** (confirmed 2026-09-20; a "pre-generated draft" does not persist). Shoot this the same way as shot 3: its own short, retried-until-clean clip. Never attempt this on the `DEADLINE_MISSED` hero case regardless — `assertNoticeEligible()` throws on it by design. |
+| 10 | Synopsis generated, **back on the hero case** | All synopsis sections populated including the affidavit-flagged contact-particulars section, "DRAFT SYNOPSIS" header | No fallback needed — `synopsis.ts` is pure client-side formatting of the already-saved facts, zero model calls, safe to regenerate live on camera as many times as needed. |
 | 11 | Editing and downloading the notice and the synopsis (two different saved cases) | The downloaded files opening | — |
 | 12 | **Date-travel slider, dragged live** | The case crossing `ON_TRACK` → `ACT_NOW` → `DEADLINE_MISSED` with the recovery path appearing, all in one continuous drag, no reload | **This is the designated wow moment (D-21). Do not cut this shot under any time pressure** — it is the single most differentiating five seconds in the video. |
 | 13 | Architecture diagram | Every AWS service named in the script | Static image in the README |
-| 14 | Test suite running green | `npm test` output — 111 passing in the rules engine plus 33 in the AWS layer, 144 total, in a terminal | **Do not skip this shot.** It is the proof behind the whole "the model never decides" claim, and it takes four seconds. |
+| 14 | Test suite running green, **at 2:30, closing the "Where AWS fits" beat** | `npm test` output — 111 passing in the rules engine plus 33 in the AWS layer, 144 total, in a terminal | **Do not skip this shot.** It is the proof behind the whole "the model never decides" claim, and it takes four seconds. (Numbers verified against the actual suite: `npm test` → 111 in `packages/rules`, 33 in `amplify`, 144 total.) |
 
 ---
 
 ## Rules for the recording
 
-- **Nothing in the video may depend on a live Gemini call.** Pre-extract and pre-generate.
-  A cold Lambda or a throttle during take three will cost an hour you do not have.
+- **The main continuous walkthrough take (steps 4–11) must not depend on a live Gemini
+  call — it doesn't, once the hero and second cases exist.** Shots 3 (extraction) and 9
+  (notice) are the exception: they cannot be pre-baked (see the pregeneration-pass section
+  above) and are always live. Isolate them as their own short, retry-until-clean clips, shot
+  separately from the main take, so a cold Lambda or a throttle costs you a retake of a
+  five-second clip, not the whole 80-second unbroken sequence.
 - Say the number of tests out loud. "144" is concrete; "well tested" is noise.
 - Never say "potentially", "might", "we hope to". Present tense, what it does.
 - Do not apologise for anything that is missing. Put it in the roadmap line instead.
